@@ -227,7 +227,9 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void stoppedTaskTransitionsToFailed() throws Exception {
-        final List<TaskInfo> infos = Collections.singletonList(FailureUtils.markFailed(taskInfo));
+        TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setPermanentlyFailed().toProto());
+        final List<TaskInfo> infos = Collections.singletonList(taskInfoBuilder.build());
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(infos.get(0));
@@ -324,7 +326,9 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
+        TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setPermanentlyFailed().toProto());
+        final TaskInfo failedTaskInfo = taskInfoBuilder.build();;
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(

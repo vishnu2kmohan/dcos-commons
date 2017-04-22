@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.scheduler.recovery.monitor;
 
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 
 /**
  * The DefaultFailureMonitor reports that tasks have Failed permanently when they are so labeled.
@@ -9,6 +10,6 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 public class DefaultFailureMonitor implements FailureMonitor {
     @Override
     public boolean hasFailed(Protos.TaskInfo task) {
-        return FailureUtils.isLabeledAsFailed(task);
+        return new SchedulerLabelReader(task).isPermanentlyFailed();
     }
 }

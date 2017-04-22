@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.RandomStrategy;
@@ -146,7 +147,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         logger.info("Found pods needing recovery: " + podNames);
 
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
-                FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
+                new SchedulerLabelReader(t).isPermanentlyFailed() || failureMonitor.hasFailed(t));
 
         List<Step> recoverySteps = new ArrayList<>();
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> failedPod : failedPodsMap.entrySet()) {

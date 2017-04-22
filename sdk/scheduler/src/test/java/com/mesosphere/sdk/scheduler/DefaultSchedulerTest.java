@@ -10,10 +10,11 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -622,8 +623,8 @@ public class DefaultSchedulerTest {
                 .setName(TestConstants.TASK_NAME)
                 .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
+                .setLabels(new SchedulerLabelWriter().setPermanentlyFailed().toProto())
                 .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
 
         stateStore.storeTasks(Arrays.asList(taskInfo));
         statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
@@ -636,8 +637,8 @@ public class DefaultSchedulerTest {
                 .setName(TestConstants.TASK_NAME)
                 .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
+                .setLabels(new SchedulerLabelWriter().setPermanentlyFailed().toProto())
                 .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
 
         stateStore.storeTasks(Arrays.asList(taskInfo));
         statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
@@ -650,8 +651,8 @@ public class DefaultSchedulerTest {
                 .setName(TestConstants.TASK_NAME)
                 .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
+                .setLabels(new SchedulerLabelWriter().setPermanentlyFailed().toProto())
                 .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
 
         stateStore.storeTasks(Arrays.asList(taskInfo));
         statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
@@ -664,8 +665,8 @@ public class DefaultSchedulerTest {
                 .setName(TestConstants.TASK_NAME)
                 .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
+                .setLabels(new SchedulerLabelWriter().setPermanentlyFailed().toProto())
                 .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
 
         stateStore.storeTasks(Arrays.asList(taskInfo));
         statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
@@ -698,7 +699,7 @@ public class DefaultSchedulerTest {
         return new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                return FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
+                return new SchedulerLabelReader(stateStore.fetchTask(taskName).get()).isPermanentlyFailed();
             }
         };
     }

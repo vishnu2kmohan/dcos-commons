@@ -32,4 +32,11 @@ class LabelConstants {
     static final String TASK_TYPE_LABEL = "task_type";
     /** Label against which the Task/Pod index (starting at 0) is stored. */
     static final String TASK_INDEX_LABEL = "index";
+    /**
+     * Prefix for a label identifying the actual value used for a dynamic port on a task.
+     * Following this prefix is the port name from the PortSpec.
+     */
+    static final String DYNAMIC_PORT_LABEL_PREFIX = "dynamic_port_";
+    /** Label which internally marks a given task as permanently failed (to be replaced instead of restarted) */
+    static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
 }

@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Environment;
 
 public class EnvUtils {
@@ -45,34 +44,6 @@ public class EnvUtils {
     // TODO(nickbp): SCHEDULER ONLY:
 
     /**
-     * Adds or updates the provided environment variable entry in the provided command builder.
-     */
-    static void setEnvVar(
-            Protos.CommandInfo.Builder builder,
-            String key,
-            String value) {
-        Map<String, String> envMap = toMap(builder.getEnvironment());
-        envMap.put(key, value);
-        builder.setEnvironment(toProto(envMap));
-    }
-
-    /**
-     * Returns the value of the provided environment variable, or an empty {@link Optional} if no matching environment
-     * variable was found.
-     */
-    static Optional<String> getEnvVar(Protos.CommandInfo command, String key) {
-        if (command.hasEnvironment()) {
-            for (Protos.Environment.Variable v : command.getEnvironment().getVariablesList()) {
-                if (v.getName().equals(key)) {
-                    return Optional.of(v.getValue());
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
      * Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase
      * letters, and underscores. Strictly speaking, lowercase characters are not invalid, but this avoids them to follow
      * convention.
@@ -86,7 +57,7 @@ public class EnvUtils {
     /**
      * Returns a environment variable-style rendering of the specified port.
      */
-    static String getPortEnvironmentVariable(String portName, Optional<String> customEnvKey) {
+    static String getPortEnvName(String portName, Optional<String> customEnvKey) {
         String draftEnvName = customEnvKey.isPresent()
                 ? customEnvKey.get() // use custom name as-is
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]

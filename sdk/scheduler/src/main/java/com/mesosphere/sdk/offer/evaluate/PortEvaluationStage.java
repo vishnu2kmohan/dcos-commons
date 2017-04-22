@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerEnvReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerExecutorEnvWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerTaskEnvWriter;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +23,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
  * {@link org.apache.mesos.Protos.ExecutorInfo} where appropriate so that the port is available in their respective
  * environments.
  */
-public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+public class PortEvaluationStage extends ResourceEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
     private final String portName;
@@ -42,24 +42,27 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-        SchedulerEnvReader envReader = getTaskName().isPresent() ?
-                new SchedulerEnvReader(podInfoBuilder.getTaskBuilder(getTaskName().get())) :
-                new SchedulerEnvReader(podInfoBuilder.getExecutorBuilder().get());
-        Optional<String> taskPort = envReader.getPort(portName, customEnvKey);
-        int assignedPort = port;
+        int portToUse;
+        if (port != 0) {
+            // Fixed port
+            portToUse = port;
+        } else {
+            // Dynamic port: reuse previous selection if any, or do a new selection
+            Optional<Integer> taskPort = getCurrentDynamicPortValue(podInfoBuilder);
+            if (taskPort.isPresent()) {
+                // Keep/reuse the existing port.
+                portToUse = taskPort.get();
+            } else {
+                // No previous port was found, select a port from what's available.
+                Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
+                if (!dynamicPort.isPresent()) {
+                    return fail(this,
+                            "No ports were available for dynamic claim in offer: %s",
+                            mesosResourcePool.getOffer().toString());
+                }
 
-        if (assignedPort == 0 && taskPort.isPresent()) {
-            assignedPort = Integer.parseInt(taskPort.get());
-        } else if (assignedPort == 0) {
-            Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
-            if (!dynamicPort.isPresent()) {
-                return fail(this,
-                        "No ports were available for dynamic claim in offer: %s",
-                        mesosResourcePool.getOffer().toString());
+                portToUse = dynamicPort.get();
             }
-
-            assignedPort = dynamicPort.get();
         }
 
         // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
@@ -75,7 +78,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             // to get the resource id from.
             resourceId = "";
         }
-        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
+        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), portToUse));
 
         return super.evaluate(mesosResourcePool, podInfoBuilder);
     }
@@ -83,28 +86,22 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
-        Protos.Resource.Builder resourceBuilder;
 
-        if (getTaskName().isPresent()) {
-            String taskName = getTaskName().get();
-            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-            try {
-                taskBuilder = new SchedulerTaskEnvWriter(taskBuilder)
-                        .setPort(portName, customEnvKey, port)
-                        .toProto();
-            } catch (TaskException e) {
-                LOGGER.error(String.format(
-                        "Got exception while adding PORT env vars to Task %s", taskBuilder.getName()), e);
-            }
-            resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
-        } else {
-            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            executorBuilder.getCommandBuilder().setEnvironment(new SchedulerExecutorEnvWriter(executorBuilder)
-                    .setPort(portName, customEnvKey, port)
-                    .toProto());
-            resourceBuilder = ResourceUtils.getResourceBuilder(executorBuilder, resource);
+        if (!getTaskName().isPresent()) {
+            return; // Changes are only applied to TaskInfos
         }
-
+        String taskName = getTaskName().get();
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        try {
+            SchedulerTaskEnvWriter.setDynamicPort(taskBuilder, portName, customEnvKey, port);
+            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                    .setDynamicPort(portName, port)
+                    .toProto());
+        } catch (TaskException e) {
+            LOGGER.error(String.format(
+                    "Failed to add PORT envvar and label to Task %s", taskBuilder.getName()), e);
+        }
+        Protos.Resource.Builder resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
         ResourceUtils.mergeRanges(resourceBuilder, resource);
     }
 
@@ -117,13 +114,22 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         return reservedResource;
     }
 
+    private Optional<Integer> getCurrentDynamicPortValue(PodInfoBuilder podInfoBuilder) {
+        // Figures out the current value, if any, that's being used for a requested dynamic port reservation.
+        if (!getTaskName().isPresent()) {
+            // We don't store port labels at the executor level. Nothing to return.
+            return Optional.empty();
+        }
+        return new SchedulerLabelReader(podInfoBuilder.getTaskBuilder(getTaskName().get()))
+                .getDynamicPortValue(portName);
+    }
+
     private static Optional<Integer> selectDynamicPort(
             MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        // We don't want to dynamically consume a port that's explicitly claimed by this pod accidentally, so
-        // compile a list of those to check against the offered ports.
-        OfferRequirement offerRequirement = podInfoBuilder.getOfferRequirement();
+        // We don't want to accidentally dynamically consume a port that's explicitly claimed by this pod, so compile a
+        // list of those to check against the offered ports.
         Set<Integer> consumedPorts = new HashSet<>();
-        for (Protos.Resource resource : offerRequirement.getResources()) {
+        for (Protos.Resource resource : podInfoBuilder.getOfferRequirement().getResources()) {
             if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 resource.getRanges().getRangeList().stream()
                         .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
@@ -132,7 +138,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
         }
 
-        // Also check dynamically allocated ports.
+        // Also check other dynamically allocated ports.
         for (Protos.Resource.Builder resourceBuilder : podInfoBuilder.getResourceBuilders()) {
             if (resourceBuilder.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 resourceBuilder.getRanges().getRangeList().stream()

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.taskdata;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.apache.commons.codec.binary.Base64;
@@ -72,5 +73,22 @@ class LabelUtils {
         } catch (InvalidProtocolBufferException e) {
             throw new TaskException(e);
         }
+    }
+
+    /**
+     * Generates an appropriate label name for the specified dynamic port name.
+     */
+    static String toDynamicPortLabel(String portName) {
+        return LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + portName;
+    }
+
+    /**
+     * Returns the port name from the provided label name, or an empty {@link Optional} if the label isn't for a dynamic
+     * port.
+     */
+    static Optional<String> toDynamicPortName(String labelName) {
+        return labelName.startsWith(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX)
+                ? Optional.of(labelName.substring(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX.length()))
+                : Optional.empty();
     }
 }

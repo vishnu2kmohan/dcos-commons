@@ -56,6 +56,22 @@ public class SchedulerLabelWriter extends TaskDataWriter {
     }
 
     /**
+     * Marks the task as permanently failed.
+     */
+    public SchedulerLabelWriter setPermanentlyFailed() {
+        put(LabelConstants.PERMANENTLY_FAILED_LABEL, "true");
+        return this;
+    }
+
+    /**
+     * Marks the task as not permanently failed.
+     */
+    public SchedulerLabelWriter clearPermanentlyFailed() {
+        remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
+        return this;
+    }
+
+    /**
      * Stores the provided task type string. Any existing task type is overwritten.
      */
     public SchedulerLabelWriter setType(String taskType) {
@@ -114,6 +130,15 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      */
     public SchedulerLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
         put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
+        return this;
+    }
+
+    /**
+     * Stores the value used for a dynamic port. This allows a degree of stickiness for dynamic ports, keeping them the
+     * same across (scheduler and/or task) restarts to avoid constantly re-reserving port resources.
+     */
+    public SchedulerLabelWriter setDynamicPort(String portName, long port) {
+        put(LabelUtils.toDynamicPortLabel(portName), Long.toString(port));
         return this;
     }
 

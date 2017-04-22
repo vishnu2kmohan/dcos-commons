@@ -3,12 +3,12 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.TaskPacking;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -1060,9 +1060,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build());
 
         Assert.assertEquals(Status.PENDING, deploymentStep.getStatus());
-        stateStore.storeTasks(Arrays.asList(FailureUtils.markFailed(taskInfo)));
+        TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setPermanentlyFailed().toProto());
+        stateStore.storeTasks(Arrays.asList(taskInfoBuilder.build()));
 
-        Assert.assertTrue(FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskInfo.getName()).get()));
+        Assert.assertTrue(
+                new SchedulerLabelReader(stateStore.fetchTask(taskInfo.getName()).get()).isPermanentlyFailed());
 
         recommendations = evaluator.evaluate(
                 deploymentStep.start().get(),

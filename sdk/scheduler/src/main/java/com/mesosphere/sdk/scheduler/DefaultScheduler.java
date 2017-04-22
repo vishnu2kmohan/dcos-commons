@@ -21,6 +21,8 @@ import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -856,8 +858,12 @@ public class DefaultScheduler implements Scheduler, Observer {
                             || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
                         String taskName = CommonIdUtils.toTaskName(status.getTaskId());
                         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-                        if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
-                            stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));
+                        if (taskInfoOptional.isPresent()
+                                && new SchedulerLabelReader(taskInfoOptional.get()).isPermanentlyFailed()) {
+                            Protos.TaskInfo.Builder taskInfoBuilder = taskInfoOptional.get().toBuilder();
+                            taskInfoBuilder.setLabels(
+                                    new SchedulerLabelWriter(taskInfoBuilder).clearPermanentlyFailed().toProto());
+                            stateStore.storeTasks(Arrays.asList(taskInfoBuilder.build()));
                         }
                     }
 

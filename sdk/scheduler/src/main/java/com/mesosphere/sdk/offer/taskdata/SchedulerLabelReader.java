@@ -1,22 +1,34 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.mesos.Protos.Attribute;
+import org.apache.mesos.Protos.Environment;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.PortsSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 
 /**
  * Provides read access to task labels which are (only) read by the Scheduler.
  */
 public class SchedulerLabelReader extends TaskDataReader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerLabelReader.class);
 
     /**
      * @see TaskDataReader#TaskDataReader(String, String, java.util.Map)
@@ -112,5 +124,77 @@ public class SchedulerLabelReader extends TaskDataReader {
     public boolean isTransient() {
         // null is false
         return Boolean.valueOf(getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task is marked as permanently failed. This identifies the task as needing replacement on a
+     * new machine in the cluster (as opposed to needing a restart on the current machine).
+     */
+    public boolean isPermanentlyFailed() {
+        // null is false
+        return Boolean.valueOf(getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
+    }
+
+    public Optional<Integer> getDynamicPortValue(String portName) {
+        Optional<String> dynamicPortVal = getOptional(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + portName);
+        return dynamicPortVal.isPresent()
+                ? Optional.of(Integer.getInteger(dynamicPortVal.get()))
+                : Optional.empty();
+    }
+
+    public Map<String, Integer> getAllDynamicPortValues(TaskSpec taskSpec) {
+        Map<String, Integer> dynamicPortValues = new HashMap<>();
+        for (PortSpec dynamicPortSpec : getDynamicPortSpecs(taskSpec)) {
+            Optional<String> dynamicPortVal =
+                    getOptional(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + dynamicPortSpec.getPortName());
+            if (dynamicPortVal.isPresent()) {
+                dynamicPortValues.put(dynamicPortSpec.getName(), Integer.getInteger(dynamicPortVal.get()));
+            }
+        }
+        return dynamicPortValues;
+    }
+
+    /**
+     * Extracts the dynamic port values currently/previously used by the task from the provided task environment.
+     * TODO(nickbp): This is deprecated in favor of port values stored in task labels. Remove this fallback on or after
+     * July 2017.
+     */
+    @Deprecated
+    public static Map<String, Integer> getAllDynamicPortValuesFromEnv(TaskSpec taskSpec, Environment environment) {
+        Map<String, String> envMap = EnvUtils.toMap(environment);
+
+        Map<String, Integer> dynamicPortValues = new HashMap<>();
+        for (PortSpec dynamicPortSpec : getDynamicPortSpecs(taskSpec)) {
+            String portEnvName = EnvUtils.getPortEnvName(dynamicPortSpec.getPortName(), dynamicPortSpec.getEnvKey());
+            String portEnvVal = envMap.get(portEnvName);
+            if (portEnvVal != null) {
+                try {
+                    dynamicPortValues.put(dynamicPortSpec.getPortName(), Integer.getInteger(portEnvVal));
+                } catch (NumberFormatException e) {
+                    // Just in case, let's be conservative about envvars: Author could have put something bogus here.
+                    LOGGER.warn(String.format(
+                            "Failed to extract dynamic port value from legacy task env: %s=%s",
+                            portEnvName, portEnvVal), e);
+                    continue; // just in case...
+                }
+            }
+        }
+        return dynamicPortValues;
+    }
+
+    private static Collection<PortSpec> getDynamicPortSpecs(TaskSpec taskSpec) {
+        Collection<PortSpec> dynamicPortSpecs = new ArrayList<>();
+        for (ResourceSpec resource : taskSpec.getResourceSet().getResources()) {
+            if (!(resource instanceof PortsSpec)) {
+                continue;
+            }
+            for (PortSpec portSpec : ((PortsSpec)resource).getPortSpecs()) {
+                if (portSpec.getPortValue() != 0) {
+                    continue; // not a dynamic port, no additional processing needed
+                }
+                dynamicPortSpecs.add(portSpec);
+            }
+        }
+        return dynamicPortSpecs;
     }
 }

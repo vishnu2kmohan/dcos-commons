@@ -4,7 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 
 import java.time.Duration;
 import java.util.Date;
@@ -69,7 +70,9 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
                 + taskExpiredTime + " which is " + now.after(taskExpiredTime));
 
         if (now.after(taskExpiredTime)) {
-            FailureUtils.markFailed(terminatedTask);
+            TaskInfo.Builder taskBuilder = terminatedTask.toBuilder();
+            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setPermanentlyFailed().toProto());
+            terminatedTask = taskBuilder.build();
         }
 
         return super.hasFailed(terminatedTask);

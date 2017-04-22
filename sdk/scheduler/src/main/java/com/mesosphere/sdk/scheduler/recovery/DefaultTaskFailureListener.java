@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,11 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
         try {
             Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
             if (optionalTaskInfo.isPresent()) {
-                Protos.TaskInfo taskInfo = FailureUtils.markFailed(optionalTaskInfo.get());
-                stateStore.storeTasks(Arrays.asList(taskInfo));
+                Protos.TaskInfo.Builder taskInfoBuilder = optionalTaskInfo.get().toBuilder();
+                taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+                        .setPermanentlyFailed()
+                        .toProto());
+                stateStore.storeTasks(Arrays.asList(taskInfoBuilder.build()));
             } else {
                 logger.error("TaskInfo for TaskID was not present in the StateStore: " + taskId);
             }

@@ -4,7 +4,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.mesos.Protos.Environment;
+import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.TaskInfo;
 
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -20,11 +23,6 @@ public class SchedulerTaskEnvWriter {
     public SchedulerTaskEnvWriter() {
         this.taskAndHealthCheckEnv = new TaskDataWriter();
         this.taskOnlyEnv = new TaskDataWriter();
-    }
-
-    public SchedulerTaskEnvWriter setPort(String portName, Optional<String> customEnvKey, long port) {
-        taskAndHealthCheckEnv.put(EnvUtils.getPortEnvironmentVariable(portName, customEnvKey), Long.toString(port));
-        return this;
     }
 
     public SchedulerTaskEnvWriter setEnv(
@@ -64,14 +62,19 @@ public class SchedulerTaskEnvWriter {
             }
         }
 
-        setParameters(planParameters);
+        taskOnlyEnv.putAll(planParameters);
 
         return this;
     }
 
-    public SchedulerTaskEnvWriter setParameters(Map<String, String> planParameters) {
-        taskOnlyEnv.putAll(planParameters);
-        return this;
+    public static void setDynamicPort(
+            TaskInfo.Builder taskInfoBuilder, String portName, Optional<String> customEnvKey, long port)
+                    throws TaskException {
+
+        foo; //TODO(nickbp): append to task itself AND to health check(s)
+        TaskDataWriter writer = new TaskDataWriter(EnvUtils.toMap(taskInfoBuilder.getCommand().getEnvironment()));
+        writer.put(EnvUtils.getPortEnvName(portName, customEnvKey), Long.toString(port));
+        taskInfoBuilder.getCommandBuilder().setEnvironment(EnvUtils.toProto(writer.map()));
     }
 
     public Environment getTaskEnv() {

@@ -20,7 +20,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
  * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
-public class VolumeEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+public class VolumeEvaluationStage extends ResourceEvaluationStage {
     private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
 
     public VolumeEvaluationStage(Resource resource, String taskName) {
