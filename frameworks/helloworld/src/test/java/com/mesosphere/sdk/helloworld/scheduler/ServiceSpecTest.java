@@ -12,6 +12,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("LIBMESOS_URI", "");
         ENV_VARS.set("PORT_API", "8080");
 
+        ENV_VARS.set("FRAMEWORK_NAME", "hello-world");
         ENV_VARS.set("SLEEP_DURATION", "1000");
         ENV_VARS.set("HELLO_COUNT", "2");
         ENV_VARS.set("HELLO_PORT", "4444");
