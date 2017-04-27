@@ -7,6 +7,9 @@ import java.util.regex.Pattern;
 
 import org.apache.mesos.Protos.Environment;
 
+/**
+ * Utilities relating to environment variable manipulation.
+ */
 public class EnvUtils {
 
     private static final Pattern ENVVAR_INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_]");

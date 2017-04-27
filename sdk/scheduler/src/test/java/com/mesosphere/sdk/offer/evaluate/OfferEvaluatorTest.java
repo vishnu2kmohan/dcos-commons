@@ -2,9 +2,10 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.TaskPacking;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -52,8 +53,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        CommandInfo command = TaskPacking.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = CommonIdUtils.fromEnvironmentToMap(command.getEnvironment());
+        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -82,8 +83,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        CommandInfo command = TaskPacking.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = CommonIdUtils.fromEnvironmentToMap(command.getEnvironment());
+        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -115,8 +116,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        CommandInfo command = TaskPacking.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = CommonIdUtils.fromEnvironmentToMap(command.getEnvironment());
+        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -138,8 +139,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        CommandInfo command = TaskPacking.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = CommonIdUtils.fromEnvironmentToMap(command.getEnvironment());
+        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -249,8 +250,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(
                 resourceIdLabel.getValue(), fulfilledPortResource.getReservation().getLabels().getLabels(0).getValue());
 
-        CommandInfo command = TaskPacking.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = CommonIdUtils.fromEnvironmentToMap(command.getEnvironment());
+        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 2, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
         Assert.assertEquals(String.valueOf(10001), envvars.get(TestConstants.PORT_ENV_NAME + "1"));
@@ -600,6 +601,85 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
+    public void testReserveExecutorVolume() throws Exception {
+        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getUnreservedMountVolume(2000),
+                ResourceTestUtils.getUnreservedCpu(1.0));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(4, recommendations.size());
+
+        // Validate just the operations pertaining to the executor
+        // Validate RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+
+        // Validate CREATE Operation
+        String resourceId = getFirstLabel(reserveResource).getValue();
+        Operation createOperation = recommendations.get(1).getOperation();
+        Resource createResource =
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
+
+        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertTrue(createResource.getDisk().hasVolume());
+    }
+
+    @Test
+    public void testUpdateExecutorVolumeSuccess() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);
+        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
+    public void testUpdateExecutorVolumeFailure() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(2500, resourceId);
+        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
     }
 
     @Test

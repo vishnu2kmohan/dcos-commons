@@ -2,8 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerTaskEnvWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -93,10 +92,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
         String taskName = getTaskName().get();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
         try {
-            SchedulerTaskEnvWriter.setDynamicPort(taskBuilder, portName, customEnvKey, port);
-            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
-                    .setDynamicPort(portName, port)
-                    .toProto());
+            SchedulerEnvWriter.setDynamicPort(taskBuilder, portName, customEnvKey, port);
         } catch (TaskException e) {
             LOGGER.error(String.format(
                     "Failed to add PORT envvar and label to Task %s", taskBuilder.getName()), e);

@@ -48,15 +48,14 @@ public class TaskStatusUtils {
                                   boolean isHealthy,
                                   Labels labels,
                                   byte[] data) {
-        final TaskStatus.Builder builder = TaskStatus.newBuilder();
-
-        builder.setState(state);
-        builder.setMessage(message);
-        builder.setTaskId(taskID);
-        builder.setSlaveId(slaveID);
-        builder.setExecutorId(executorID);
-        builder.setSource(TaskStatus.Source.SOURCE_EXECUTOR);
-        builder.setHealthy(isHealthy);
+        final TaskStatus.Builder builder = TaskStatus.newBuilder()
+                .setState(state)
+                .setMessage(message)
+                .setTaskId(taskID)
+                .setSlaveId(slaveID)
+                .setExecutorId(executorID)
+                .setSource(TaskStatus.Source.SOURCE_EXECUTOR)
+                .setHealthy(isHealthy);
 
         if (data != null) {
             builder.setData(ByteString.copyFrom(data));

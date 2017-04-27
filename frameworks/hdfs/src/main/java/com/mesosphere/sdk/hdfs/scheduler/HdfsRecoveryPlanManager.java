@@ -3,12 +3,12 @@ package com.mesosphere.sdk.hdfs.scheduler;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
@@ -101,7 +101,7 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
                         podInstanceListEntry -> podInstanceListEntry.getValue()));
 
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
-                FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
+                new SchedulerLabelReader(t).isPermanentlyFailed() || failureMonitor.hasFailed(t));
 
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> failedPod : failedNameNodes.entrySet()) {
             PodInstance podInstance = failedPod.getKey();

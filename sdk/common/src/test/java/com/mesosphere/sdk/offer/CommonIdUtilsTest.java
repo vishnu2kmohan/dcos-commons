@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for {@link CommonIdUtils}
+ * Tests for {@link CommonIdUtils}.
  */
 public class CommonIdUtilsTest {
     private static final String testTaskName = "test-task-name";

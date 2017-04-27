@@ -6,7 +6,10 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 
-public class ProcessUtils {
+/**
+ * Utilities relating to construction of {@link ProcessBuilder}s.
+ */
+public class ProcessBuilderUtils {
     public static ProcessBuilder buildProcess(Protos.CommandInfo cmd) {
         return buildProcess(cmd.getValue(), EnvUtils.toMap(cmd.getEnvironment()));
     }

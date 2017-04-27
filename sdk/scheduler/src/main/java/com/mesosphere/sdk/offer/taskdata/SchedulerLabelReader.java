@@ -188,7 +188,7 @@ public class SchedulerLabelReader extends TaskDataReader {
             if (!(resource instanceof PortsSpec)) {
                 continue;
             }
-            for (PortSpec portSpec : ((PortsSpec)resource).getPortSpecs()) {
+            for (PortSpec portSpec : ((PortsSpec) resource).getPortSpecs()) {
                 if (portSpec.getPortValue() != 0) {
                     continue; // not a dynamic port, no additional processing needed
                 }

@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.ProcessUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -37,7 +37,8 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             boolean exitOnTermination) {
-        return create(executorDriver, taskInfo, ProcessUtils.buildProcess(taskInfo.getCommand()), exitOnTermination);
+        return create(
+                executorDriver, taskInfo, ProcessBuilderUtils.buildProcess(taskInfo.getCommand()), exitOnTermination);
     }
 
     public static ProcessTask create(

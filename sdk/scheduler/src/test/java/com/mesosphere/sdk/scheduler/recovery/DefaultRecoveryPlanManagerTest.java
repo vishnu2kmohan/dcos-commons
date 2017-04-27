@@ -328,7 +328,7 @@ public class DefaultRecoveryPlanManagerTest {
         // Prepare permanently failed task with some reserved resources
         TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
         taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setPermanentlyFailed().toProto());
-        final TaskInfo failedTaskInfo = taskInfoBuilder.build();;
+        final TaskInfo failedTaskInfo = taskInfoBuilder.build();
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(

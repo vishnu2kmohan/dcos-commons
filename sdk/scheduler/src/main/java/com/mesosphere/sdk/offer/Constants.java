@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 /**
- * This class encapsulates constants of relevance to the SDK.
+ * This class encapsulates constants of relevance to SDK Scheduler internals.
  *
  * @see com.mesosphere.sdk.offer.taskdata.EnvConstants
  * @see com.mesosphere.sdk.offer.taskdata.LabelConstants

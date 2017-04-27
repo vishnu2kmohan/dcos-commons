@@ -4,7 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerTaskEnvWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -128,6 +128,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             String serviceName,
             UUID targetConfigurationId) throws InvalidRequirementException {
         List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
+        Protos.ExecutorInfo executorInfo = null;
 
         for (Protos.TaskInfo taskInfo : podTasks) {
             Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
@@ -139,9 +140,24 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
+        if (executorInfo == null) {
+            executorInfo = getNewExecutorInfo(
+                    podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+        }
+
+        Map<String, Protos.Resource> volumeMap = new HashMap<>();
+        volumeMap.putAll(executorInfo.getResourcesList().stream()
+                .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
+                .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
+
+        List<ResourceRequirement> resourceRequirements = new ArrayList<>();
+        for (VolumeSpec v : podInstance.getPod().getVolumes()) {
+            resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
+        }
+
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.create(getNewExecutorInfo(
-                podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags));
+
+        return ExecutorRequirement.create(executorInfo, resourceRequirements);
     }
 
     @Override
@@ -164,7 +180,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 // Copy any information specifying prior dynamic port values to the new task
                 dynamicPortValues = new SchedulerLabelReader(taskInfoOptional.get()).getAllDynamicPortValues(taskSpec);
                 if (dynamicPortValues.isEmpty()) {
-                    // Fall back to getting values from task env:
+                    // Fallback: extract preexisting dynamic port values from task env:
                     // TODO(nickbp): Remove this fallback on or after July 2017
                     dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValuesFromEnv(
                             taskSpec, taskInfoOptional.get().getCommand().getEnvironment());
@@ -302,7 +318,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             TaskSpec taskSpec,
             Map<String, String> planParameters,
             Collection<Protos.Resource> resources,
-            Map<String, Integer> dynamicPortValues, // TODO use
+            Map<String, Integer> dynamicPortValues,
             UUID targetConfigurationId,
             boolean isTransient) {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
@@ -311,7 +327,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setTaskId(CommonIdUtils.emptyTaskId())
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
-        SchedulerTaskEnvWriter envWriter = new SchedulerTaskEnvWriter();
+        SchedulerEnvWriter envWriter = new SchedulerEnvWriter();
         if (taskSpec.getCommand().isPresent()) {
             envWriter.setEnv(
                     serviceName,
@@ -357,6 +373,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             labelWriter.setReadinessCheck(
                     toHealthCheck(taskSpec.getReadinessCheck().get(), envWriter.getHealthCheckEnv()));
         }
+        for (Map.Entry<String, Integer> entry : dynamicPortValues.entrySet()) {
+            labelWriter.setDynamicPort(entry.getKey(), entry.getValue());
+        }
         taskInfoBuilder.setLabels(labelWriter.toProto());
 
         return taskInfoBuilder.build();
@@ -390,6 +409,30 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return resourceRequirements;
+    }
+
+    private static Protos.Resource getVolumeResource(VolumeSpec volumeSpec) {
+        Protos.Resource volume = null;
+        switch (volumeSpec.getType()) {
+            case ROOT:
+                volume = ResourceUtils.getDesiredRootVolume(
+                        volumeSpec.getRole(),
+                        volumeSpec.getPrincipal(),
+                        volumeSpec.getValue().getScalar().getValue(),
+                        volumeSpec.getContainerPath());
+                break;
+            case MOUNT:
+                volume = ResourceUtils.getDesiredMountVolume(
+                        volumeSpec.getRole(),
+                        volumeSpec.getPrincipal(),
+                        volumeSpec.getValue().getScalar().getValue(),
+                        volumeSpec.getContainerPath());
+                break;
+            default:
+                LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
+        }
+
+        return volume;
     }
 
     private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {
@@ -516,6 +559,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
                 "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
+         // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
+                "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
                 "$MESOS_SANDBOX/executor/bin/executor");
 
         if (podSpec.getUser().isPresent()) {
@@ -529,6 +574,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
+        }
+
+        // Volumes for the pod to share.
+        for (VolumeSpec v : podSpec.getVolumes()) {
+            executorInfoBuilder.addResources(getVolumeResource(v));
         }
 
         // Finally any URIs for config templates defined in TaskSpecs.

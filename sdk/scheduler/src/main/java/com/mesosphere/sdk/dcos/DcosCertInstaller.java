@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.ProcessUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ public class DcosCertInstaller {
 
             LOGGER.info("Installing DC/OS cert using command: {}", cmd);
 
-            final int exitCode = processRunner.run(ProcessUtils.buildProcess(cmd, Collections.emptyMap()), 10);
+            final int exitCode = processRunner.run(ProcessBuilderUtils.buildProcess(cmd, Collections.emptyMap()), 10);
             LOGGER.info("Certificate install process completed with exit code: {}", exitCode);
             return exitCode == 0;
         } catch (Throwable t) {

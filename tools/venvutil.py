@@ -21,15 +21,39 @@ def venv_exists(path):
     return os.path.isfile(path, 'bin', 'python')
 
 
-def create_venv(path, with_pip=True, symlinks=True, py3=False):
+def create_venv(path, with_pip=True, symlinks=True):
     "Create, but do not activate, a virtual env"
-    # ignoring py3; if we're already running py3, always py3
     path = os.path.abspath(path)
+    logger.info("using venv module at path %s", venv.__file__)
     builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
 
-    logger.info("Creating venv at {}".format(path))
-    builder.create(path)
-    logger.info("Files in {}:\n{}\n".format(path, "\n".join(os.listdir(os.path.join(path, 'bin')))))
+
+    logger.info("Creating venv at %s", path)
+    logger.info("current environment is: %s", os.environ)
+    #builder.create(path)
+    context = builder.ensure_directories(path)
+    logger.info("venv context: %s", context)
+    logger.info("venv listing: %s", ", ".join(os.listdir(path)))
+    builder.create_configuration(context)
+    cfg_file = os.path.join(path, 'pyvenv.cfg')
+    with open(cfg_file) as f:
+        logger.info("venv pyvenv.cfg: %s", f.read())
+
+    builder.setup_python(context)
+    bin_dir = os.path.join(path, 'bin')
+    dirents1 =  os.listdir(bin_dir)
+    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
+
+    builder.setup_scripts(context)
+    bin_dir = os.path.join(path, 'bin')
+    dirents1 =  os.listdir(bin_dir)
+    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
+
+    builder._setup_pip(context)
+    dirents2 =  os.listdir(bin_dir)
+    logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))
+
+
 
 def activate_venv(path):
     "Activate a given venv for the current python process."
@@ -64,6 +88,13 @@ def activate_venv(path):
             new_sys_path.append(item)
             sys.path.remove(item)
     sys.path[:0] = new_sys_path
+
+
+def pip_install_module(path, modulename):
+    """Populate a venv with specific module"""
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', modulename])
+
 
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"

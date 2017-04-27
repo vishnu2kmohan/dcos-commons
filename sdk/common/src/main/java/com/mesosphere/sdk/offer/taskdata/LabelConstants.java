@@ -37,6 +37,6 @@ class LabelConstants {
      * Following this prefix is the port name from the PortSpec.
      */
     static final String DYNAMIC_PORT_LABEL_PREFIX = "dynamic_port_";
-    /** Label which internally marks a given task as permanently failed (to be replaced instead of restarted) */
+    /** Label which internally marks a given task as permanently failed (to be replaced instead of restarted). */
     static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
 }
