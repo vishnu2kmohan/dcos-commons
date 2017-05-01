@@ -23,18 +23,24 @@ class LabelUtils {
     }
 
     /**
-     * Returns a Map representation of the provided {@link Labels}.
+     * Returns a {@link TaskDataReader} instance which may be used for accessing the provided {@link Labels}.
      * In the event of duplicate labels, the last duplicate wins.
      *
      * @see #toProto(Map)
      */
-    static Map<String, String> toMap(Labels labels) {
-        // sort labels alphabetically for convenience in debugging/logging:
-        Map<String, String> map = new TreeMap<>();
-        for (Label label : labels.getLabelsList()) {
-            map.put(label.getKey(), label.getValue());
-        }
-        return map;
+    static TaskDataReader toDataReader(String taskName, Labels labels) {
+        return new TaskDataReader(taskName, "label", toMap(labels));
+    }
+
+
+    /**
+     * Returns a {@link TaskDataWriter} instance which may be used for accessing the provided {@link Labels}.
+     * In the event of duplicate labels, the last duplicate wins.
+     *
+     * @see #toProto(Map)
+     */
+    static TaskDataWriter toDataWriter(Labels labels) {
+        return new TaskDataWriter(toMap(labels));
     }
 
     /**
@@ -76,19 +82,34 @@ class LabelUtils {
     }
 
     /**
-     * Generates an appropriate label name for the specified dynamic port name.
+     * Returns the provided Labels in map form. In the event of duplicate labels, the last duplicate wins.
      */
-    static String toDynamicPortLabel(String portName) {
-        return LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + portName;
+    private static Map<String, String> toMap(Labels labels) {
+        // sort labels alphabetically for convenience in debugging/logging:
+        Map<String, String> map = new TreeMap<>();
+        for (Label label : labels.getLabelsList()) {
+            map.put(label.getKey(), label.getValue());
+        }
+        return map;
     }
 
     /**
-     * Returns the port name from the provided label name, or an empty {@link Optional} if the label isn't for a dynamic
-     * port.
+     * Generates an appropriate label name for the specified dynamic port name.
+     *
+     * This is the inverse of {@link #toPortName(String)}.
      */
-    static Optional<String> toDynamicPortName(String labelName) {
-        return labelName.startsWith(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX)
-                ? Optional.of(labelName.substring(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX.length()))
+    static String toPortLabelName(String portName) {
+        return LabelConstants.RESOURCE_PORT_NAME_PREFIX + portName;
+    }
+
+    /**
+     * Returns the port name from the provided label name, or an empty {@link Optional} if the label isn't for a port.
+     *
+     * This is the inverse of {@link #toPortLabelName(String)}.
+     */
+    static Optional<String> toPortName(String labelName) {
+        return labelName.startsWith(LabelConstants.RESOURCE_PORT_NAME_PREFIX)
+                ? Optional.of(labelName.substring(LabelConstants.RESOURCE_PORT_NAME_PREFIX.length()))
                 : Optional.empty();
     }
 }

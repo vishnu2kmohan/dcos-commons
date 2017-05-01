@@ -2,9 +2,13 @@ package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
 
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -40,27 +44,27 @@ public class TaskTestUtils {
             }
 
             if (Objects.equals(r.getName(), "ports")) {
-                String portValue = dynamicPortAssignment == null ?
-                        Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
-
+                Long portValue = dynamicPortAssignment == null ?
+                        r.getRanges().getRange(0).getBegin() : Long.parseLong(dynamicPortAssignment);
                 if (!resourceId.isEmpty()) {
-                    builder.getCommandBuilder()
-                            .getEnvironmentBuilder()
-                            .addVariablesBuilder()
-                            .setName(TestConstants.PORT_ENV_NAME)
-                            .setValue(portValue);
-                }
-                if (!resourceId.isEmpty() && vipAssignment != null) {
-                    Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
-                    discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
-                    discoveryBuilder.setName(builder.getName());
-                    discoveryBuilder.getPortsBuilder()
-                            .addPortsBuilder()
-                            .setNumber(Integer.parseInt(portValue))
-                            .getLabelsBuilder()
-                            .addLabelsBuilder()
-                            .setKey("VIP_" + UUID.randomUUID().toString())
-                            .setValue(vipAssignment);
+                    try {
+                        SchedulerEnvWriter.setPort(
+                                builder, "some-port", Optional.of(TestConstants.PORT_ENV_NAME), portValue);
+                    } catch (TaskException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    if (vipAssignment != null) {
+                        Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
+                        discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
+                        discoveryBuilder.setName(builder.getName());
+                        discoveryBuilder.getPortsBuilder()
+                                .addPortsBuilder()
+                                .setNumber((int) (long) portValue)
+                                .getLabelsBuilder()
+                                .addLabelsBuilder()
+                                .setKey("VIP_" + UUID.randomUUID().toString())
+                                .setValue(vipAssignment);
+                    }
                 }
             }
         }
@@ -74,16 +78,6 @@ public class TaskTestUtils {
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("RV_ABSOLUTE_VALUE_OF_RANDOM_INT")
     public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources) {
         return getTaskInfo(resources, Math.abs(random.nextInt()));
-    }
-
-    public static List<Protos.TaskInfo> getPodTaskInfos(
-            List<Protos.Resource> resources0,
-            List<Protos.Resource> resources1) {
-
-        Protos.TaskInfo taskInfo0 = getTaskInfo(resources0);
-        Protos.TaskInfo taskInfo1 = getTaskInfo(resources1);
-
-        return Arrays.asList(taskInfo0, taskInfo1);
     }
 
     public static Protos.ExecutorInfo getExecutorInfo(Protos.Resource resource) {

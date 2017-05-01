@@ -12,6 +12,7 @@ import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Environment;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
@@ -26,22 +27,24 @@ import com.mesosphere.sdk.specification.TaskSpec;
 /**
  * Provides read access to task labels which are (only) read by the Scheduler.
  */
-public class SchedulerLabelReader extends TaskDataReader {
+public class SchedulerLabelReader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerLabelReader.class);
+
+    private final TaskDataReader labels;
 
     /**
      * @see TaskDataReader#TaskDataReader(String, String, java.util.Map)
      */
     public SchedulerLabelReader(TaskInfo taskInfo) {
-        super(taskInfo.getName(), "label", LabelUtils.toMap(taskInfo.getLabels()));
+        labels = LabelUtils.toDataReader(taskInfo.getName(), taskInfo.getLabels());
     }
 
     /**
      * @see TaskDataReader#TaskDataReader(String, String, java.util.Map)
      */
     public SchedulerLabelReader(TaskInfo.Builder taskInfoBuilder) {
-        super(taskInfoBuilder.getName(), "label", LabelUtils.toMap(taskInfoBuilder.getLabels()));
+        labels = LabelUtils.toDataReader(taskInfoBuilder.getName(), taskInfoBuilder.getLabels());
     }
 
     /**
@@ -50,7 +53,7 @@ public class SchedulerLabelReader extends TaskDataReader {
      * @throws TaskException if the type could not be found.
      */
     public String getType() throws TaskException {
-        return getOrThrow(LabelConstants.TASK_TYPE_LABEL);
+        return labels.getOrThrow(LabelConstants.TASK_TYPE_LABEL);
     }
 
     /**
@@ -60,14 +63,14 @@ public class SchedulerLabelReader extends TaskDataReader {
      * @throws NumberFormatException if parsing the index as an integer failed
      */
     public int getIndex() throws TaskException {
-        return Integer.parseInt(getOrThrow(LabelConstants.TASK_INDEX_LABEL));
+        return Integer.parseInt(labels.getOrThrow(LabelConstants.TASK_INDEX_LABEL));
     }
 
     /**
      * Returns the string representations of any {@link Offer} {@link Attribute}s which were embedded in the task.
      */
     public List<String> getOfferAttributeStrings() {
-        Optional<String> joinedAttributes = getOptional(LabelConstants.OFFER_ATTRIBUTES_LABEL);
+        Optional<String> joinedAttributes = labels.getOptional(LabelConstants.OFFER_ATTRIBUTES_LABEL);
         if (!joinedAttributes.isPresent()) {
             return new ArrayList<>();
         }
@@ -78,7 +81,7 @@ public class SchedulerLabelReader extends TaskDataReader {
      * Returns the hostname of the agent machine running the task.
      */
     public String getHostname() throws TaskException {
-        return getOrThrow(LabelConstants.OFFER_HOSTNAME_LABEL);
+        return labels.getOrThrow(LabelConstants.OFFER_HOSTNAME_LABEL);
     }
 
     /**
@@ -89,7 +92,7 @@ public class SchedulerLabelReader extends TaskDataReader {
      *                       an indicated target configuration
      */
     public UUID getTargetConfiguration() throws TaskException {
-        return UUID.fromString(getOrThrow(LabelConstants.TARGET_CONFIGURATION_LABEL));
+        return UUID.fromString(labels.getOrThrow(LabelConstants.TARGET_CONFIGURATION_LABEL));
     }
 
     /**
@@ -103,13 +106,13 @@ public class SchedulerLabelReader extends TaskDataReader {
      * @return the result of a readiness check for the indicated TaskStatus
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
-        Optional<String> healthCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> healthCheckOptional = labels.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!healthCheckOptional.isPresent()) {
             // check not applicable: PASS
             return true;
         }
 
-        Optional<String> readinessCheckResult = getOptional(LabelConstants.READINESS_CHECK_PASSED_LABEL);
+        Optional<String> readinessCheckResult = labels.getOptional(LabelConstants.READINESS_CHECK_PASSED_LABEL);
         if (!readinessCheckResult.isPresent()) {
             // check applicable, but passed bit not set: FAIL
             return false;
@@ -123,7 +126,7 @@ public class SchedulerLabelReader extends TaskDataReader {
      */
     public boolean isTransient() {
         // null is false
-        return Boolean.valueOf(getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+        return Boolean.valueOf(labels.getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
     }
 
     /**
@@ -132,23 +135,24 @@ public class SchedulerLabelReader extends TaskDataReader {
      */
     public boolean isPermanentlyFailed() {
         // null is false
-        return Boolean.valueOf(getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
+        return Boolean.valueOf(labels.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
     }
 
-    public Optional<Integer> getDynamicPortValue(String portName) {
-        Optional<String> dynamicPortVal = getOptional(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + portName);
-        return dynamicPortVal.isPresent()
-                ? Optional.of(Integer.getInteger(dynamicPortVal.get()))
-                : Optional.empty();
-    }
-
-    public Map<String, Integer> getAllDynamicPortValues(TaskSpec taskSpec) {
+    /**
+     * Returns a mapping of all dynamic port values from the provided {@link TaskInfo}, using the provided
+     * {@link TaskSpec} to determine the ports which are dynamic.
+     */
+    public static Map<String, Integer> getAllDynamicPortValues(TaskSpec taskSpec, TaskInfo taskInfo)
+            throws TaskException {
+        Map<String, Integer> allResourcePortValues = new HashMap<>();
+        for (Resource resource : taskInfo.getResourcesList()) {
+            allResourcePortValues.putAll(new SchedulerResourceLabelReader(resource).getAllPortValues());
+        }
         Map<String, Integer> dynamicPortValues = new HashMap<>();
         for (PortSpec dynamicPortSpec : getDynamicPortSpecs(taskSpec)) {
-            Optional<String> dynamicPortVal =
-                    getOptional(LabelConstants.DYNAMIC_PORT_LABEL_PREFIX + dynamicPortSpec.getPortName());
-            if (dynamicPortVal.isPresent()) {
-                dynamicPortValues.put(dynamicPortSpec.getName(), Integer.getInteger(dynamicPortVal.get()));
+            Integer portValue = allResourcePortValues.get(dynamicPortSpec.getPortName());
+            if (portValue != null) {
+                dynamicPortValues.put(dynamicPortSpec.getPortName(), portValue);
             }
         }
         return dynamicPortValues;
@@ -169,7 +173,7 @@ public class SchedulerLabelReader extends TaskDataReader {
             String portEnvVal = envMap.get(portEnvName);
             if (portEnvVal != null) {
                 try {
-                    dynamicPortValues.put(dynamicPortSpec.getPortName(), Integer.getInteger(portEnvVal));
+                    dynamicPortValues.put(dynamicPortSpec.getPortName(), Integer.parseInt(portEnvVal));
                 } catch (NumberFormatException e) {
                     // Just in case, let's be conservative about envvars: Author could have put something bogus here.
                     LOGGER.warn(String.format(
@@ -182,6 +186,7 @@ public class SchedulerLabelReader extends TaskDataReader {
         return dynamicPortValues;
     }
 
+
     private static Collection<PortSpec> getDynamicPortSpecs(TaskSpec taskSpec) {
         Collection<PortSpec> dynamicPortSpecs = new ArrayList<>();
         for (ResourceSpec resource : taskSpec.getResourceSet().getResources()) {
@@ -189,10 +194,9 @@ public class SchedulerLabelReader extends TaskDataReader {
                 continue;
             }
             for (PortSpec portSpec : ((PortsSpec) resource).getPortSpecs()) {
-                if (portSpec.getPortValue() != 0) {
-                    continue; // not a dynamic port, no additional processing needed
+                if (portSpec.getPortValue() == 0) {
+                    dynamicPortSpecs.add(portSpec);
                 }
-                dynamicPortSpecs.add(portSpec);
             }
         }
         return dynamicPortSpecs;

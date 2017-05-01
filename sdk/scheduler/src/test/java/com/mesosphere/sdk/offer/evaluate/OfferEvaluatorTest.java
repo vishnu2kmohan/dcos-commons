@@ -1121,8 +1121,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 ResourceUtils.getUnreservedScalar("disk", 500.0)));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                deploymentStep.start().get(),
-                Arrays.asList(sufficientOffer));
+                deploymentStep.start().get(), Arrays.asList(sufficientOffer));
 
         Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
         Operation launchOperation = recommendations.get(4).getOperation();
@@ -1147,9 +1146,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertTrue(
                 new SchedulerLabelReader(stateStore.fetchTask(taskInfo.getName()).get()).isPermanentlyFailed());
 
-        recommendations = evaluator.evaluate(
-                deploymentStep.start().get(),
-                Arrays.asList(sufficientOffer));
+        recommendations = evaluator.evaluate(deploymentStep.start().get(), Arrays.asList(sufficientOffer));
         Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
 
         Operation operation = recommendations.get(0).getOperation();

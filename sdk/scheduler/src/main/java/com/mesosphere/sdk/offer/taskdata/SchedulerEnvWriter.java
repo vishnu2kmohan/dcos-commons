@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.apache.mesos.Protos.Environment;
 import org.apache.mesos.Protos.HealthCheck;
+import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.offer.TaskException;
@@ -68,22 +69,49 @@ public class SchedulerEnvWriter {
     }
 
     /**
-     * Stores the value used for a dynamic port. This allows a degree of stickiness for dynamic ports, keeping them the
+     * Returns the environment variables to be stored against the root TaskInfo.
+     */
+    public Environment getTaskEnv() {
+        return EnvUtils.toProto(new TaskDataWriter()
+                .putAll(taskOnlyEnv.map())
+                .putAll(taskAndHealthCheckEnv.map())
+                .map());
+    }
+
+    /**
+     * Returns the environment variables to be stored against the health check and/or readiness check, if either is
+     * applicable.
+     */
+    public Environment getHealthCheckEnv() {
+        return EnvUtils.toProto(taskAndHealthCheckEnv.map());
+    }
+
+    /**
+     * Updates the task to reflect a reserved port value in the following places:
+     * <ul>
+     * <li>Task labelThis allows a degree of stickiness for dynamic ports, keeping
+     * them the
      * same across (scheduler and/or task) restarts to avoid constantly re-reserving port resources.
      *
      * This also updates the environment of the embedded Readiness Check, if one is present.
      */
-    public static void setDynamicPort(
-            TaskInfo.Builder taskInfoBuilder, String portName, Optional<String> customEnvKey, long port)
-                    throws TaskException {
+    public static void setPort(
+            TaskInfo.Builder taskInfoBuilder,
+            Resource.Builder resourceBuilder,
+            String portName,
+            Optional<String> customEnvKey,
+            long port) throws TaskException {
         String portEnvName = EnvUtils.getPortEnvName(portName, customEnvKey);
         String portVal = Long.toString(port);
 
-        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(taskInfoBuilder);
-        // 1. Update task label:
-        labelWriter.setDynamicPort(portName, port);
+        // 1. Update task resource label:
+        resourceBuilder.getReservationBuilder().setLabels(
+                new SchedulerResourceLabelWriter(resourceBuilder)
+                .setPort(portName, port)
+                .toProto());
 
         // 2. Update readiness check env (embedded in label), if any:
+        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(taskInfoBuilder);
         Optional<HealthCheck> readinessCheckOptional = labelWriter.getReadinessCheck();
         if (readinessCheckOptional.isPresent()) {
             // Update readiness check env (embedded in label):
@@ -107,16 +135,5 @@ public class SchedulerEnvWriter {
         TaskDataWriter writer = new TaskDataWriter(EnvUtils.toMap(taskInfoBuilder.getCommand().getEnvironment()));
         writer.put(portEnvName, portVal);
         taskInfoBuilder.getCommandBuilder().setEnvironment(EnvUtils.toProto(writer.map()));
-    }
-
-    public Environment getTaskEnv() {
-        return EnvUtils.toProto(new TaskDataWriter()
-                .putAll(taskOnlyEnv.map())
-                .putAll(taskAndHealthCheckEnv.map())
-                .map());
-    }
-
-    public Environment getHealthCheckEnv() {
-        return EnvUtils.toProto(taskAndHealthCheckEnv.map());
     }
 }

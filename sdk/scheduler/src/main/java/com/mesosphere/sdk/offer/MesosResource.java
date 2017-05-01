@@ -1,24 +1,25 @@
 package com.mesosphere.sdk.offer;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
+
 /**
  * Wrapper around a Mesos {@link Resource}, combined with a resource ID string which should be present in the
  * {@link Resource} as a {@link Label}.
  **/
 public class MesosResource {
-    public static final String RESOURCE_ID_KEY = "resource_id";
 
     private final Resource resource;
-    private final String resourceId;
 
     public MesosResource(Resource resource) {
         this.resource = resource;
-        this.resourceId = getResourceIdInternal(resource);
     }
 
     public Resource getResource() {
@@ -39,12 +40,8 @@ public class MesosResource {
         return resource.getType();
     }
 
-    public boolean hasResourceId() {
-        return resourceId != null;
-    }
-
-    public String getResourceId() {
-        return resourceId;
+    public Optional<String> getResourceId() {
+        return new SchedulerResourceLabelReader(resource).getResourceId();
     }
 
     public boolean hasReservation() {
@@ -70,16 +67,5 @@ public class MesosResource {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
-
-    private static String getResourceIdInternal(Resource resource) {
-        if (resource.hasReservation()) {
-            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-                if (label.getKey().equals(RESOURCE_ID_KEY)) {
-                    return label.getValue();
-                }
-            }
-        }
-        return null;
     }
 }

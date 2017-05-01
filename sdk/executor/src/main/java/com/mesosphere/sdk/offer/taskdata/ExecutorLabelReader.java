@@ -14,21 +14,23 @@ import com.mesosphere.sdk.specification.GoalState;
 /**
  * Provides read access to task labels which are (only) read by the Executor.
  */
-public class ExecutorLabelReader extends TaskDataReader {
+public class ExecutorLabelReader {
 
     private static final Set<String> VALID_GOAL_STATES = Arrays.stream(GoalState.values())
             .map(goalState -> goalState.name())
             .collect(Collectors.toSet());
 
+    private final TaskDataReader labels;
+
     public ExecutorLabelReader(TaskInfo taskInfo) {
-        super(taskInfo.getName(), "label", LabelUtils.toMap(taskInfo.getLabels()));
+        labels = LabelUtils.toDataReader(taskInfo.getName(), taskInfo.getLabels());
     }
 
     /**
      * Returns the Task's {@link GoalState}, e.g. RUNNING or FINISHED.
      */
     public GoalState getGoalState() throws TaskException {
-        String goalStateString = getOrThrow(LabelConstants.GOAL_STATE_LABEL);
+        String goalStateString = labels.getOrThrow(LabelConstants.GOAL_STATE_LABEL);
         if (!VALID_GOAL_STATES.contains(goalStateString)) {
             throw new TaskException("Unexpected goal state encountered: " + goalStateString);
         }
@@ -40,7 +42,7 @@ public class ExecutorLabelReader extends TaskDataReader {
      * Returns the readiness check to be run by the Executor on task startup.
      */
     public Optional<HealthCheck> getReadinessCheck() throws TaskException {
-        Optional<String> readinessCheckStrOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> readinessCheckStrOptional = labels.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!readinessCheckStrOptional.isPresent()) {
             return Optional.empty();
         }

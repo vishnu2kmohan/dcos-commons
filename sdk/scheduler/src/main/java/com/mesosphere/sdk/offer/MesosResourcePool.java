@@ -271,8 +271,9 @@ public class MesosResourcePool {
         Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
 
         for (MesosResource mesResource : mesosResources) {
-            if (mesResource.hasResourceId()) {
-                reservedPool.put(mesResource.getResourceId(), mesResource);
+            Optional<String> resourceId = mesResource.getResourceId();
+            if (resourceId.isPresent()) {
+                reservedPool.put(resourceId.get(), mesResource);
             }
         }
 
@@ -331,7 +332,7 @@ public class MesosResourcePool {
         Collection<MesosResource> unreservedResources = new ArrayList<MesosResource>();
 
         for (MesosResource mesosResource : mesosResources) {
-            if (!mesosResource.hasResourceId()) {
+            if (!mesosResource.getResourceId().isPresent()) {
                 unreservedResources.add(mesosResource);
             }
         }

@@ -16,34 +16,36 @@ import com.mesosphere.sdk.specification.GoalState;
 /**
  * Provides write access to task labels which are (only) written by the Scheduler.
  */
-public class SchedulerLabelWriter extends TaskDataWriter {
+public class SchedulerLabelWriter {
+
+    private final TaskDataWriter labels;
 
     /**
      * @see TaskDataWriter#TaskDataWriter()
      */
     public SchedulerLabelWriter() {
-        super();
+        labels = new TaskDataWriter();
     }
 
     /**
      * @see TaskDataWriter#TaskDataWriter(java.util.Map)
      */
     public SchedulerLabelWriter(TaskInfo taskInfo) {
-        super(LabelUtils.toMap(taskInfo.getLabels()));
+        labels = LabelUtils.toDataWriter(taskInfo.getLabels());
     }
 
     /**
      * @see TaskDataWriter#TaskDataWriter(java.util.Map)
      */
     public SchedulerLabelWriter(TaskInfo.Builder taskInfoBuilder) {
-        super(LabelUtils.toMap(taskInfoBuilder.getLabels()));
+        labels = LabelUtils.toDataWriter(taskInfoBuilder.getLabels());
     }
 
     /**
      * Ensures that the task is identified as a transient task.
      */
     public SchedulerLabelWriter setTransient() {
-        put(LabelConstants.TRANSIENT_FLAG_LABEL, "true");
+        labels.put(LabelConstants.TRANSIENT_FLAG_LABEL, "true");
         return this;
     }
 
@@ -51,7 +53,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Ensures that the task is not identified as a transient task.
      */
     public SchedulerLabelWriter clearTransient() {
-        remove(LabelConstants.TRANSIENT_FLAG_LABEL);
+        labels.remove(LabelConstants.TRANSIENT_FLAG_LABEL);
         return this;
     }
 
@@ -59,7 +61,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Marks the task as permanently failed.
      */
     public SchedulerLabelWriter setPermanentlyFailed() {
-        put(LabelConstants.PERMANENTLY_FAILED_LABEL, "true");
+        labels.put(LabelConstants.PERMANENTLY_FAILED_LABEL, "true");
         return this;
     }
 
@@ -67,7 +69,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Marks the task as not permanently failed.
      */
     public SchedulerLabelWriter clearPermanentlyFailed() {
-        remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
+        labels.remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
         return this;
     }
 
@@ -75,7 +77,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Stores the provided task type string. Any existing task type is overwritten.
      */
     public SchedulerLabelWriter setType(String taskType) {
-        put(LabelConstants.TASK_TYPE_LABEL, taskType);
+        labels.put(LabelConstants.TASK_TYPE_LABEL, taskType);
         return this;
     }
 
@@ -84,7 +86,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Assigns the pod instance index to the provided task. Any existing index is overwritten.
      */
     public SchedulerLabelWriter setIndex(int index) {
-        put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(index));
+        labels.put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(index));
         return this;
     }
 
@@ -93,7 +95,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Any existing stored attributes are overwritten.
      */
     public SchedulerLabelWriter setOfferAttributes(Offer launchOffer) {
-        put(LabelConstants.OFFER_ATTRIBUTES_LABEL, AttributeStringUtils.toString(launchOffer.getAttributesList()));
+        labels.put(LabelConstants.OFFER_ATTRIBUTES_LABEL, AttributeStringUtils.toString(launchOffer.getAttributesList()));
         return this;
     }
 
@@ -102,7 +104,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Any existing stored hostname is overwritten.
      */
     public SchedulerLabelWriter setHostname(Offer launchOffer) {
-        put(LabelConstants.OFFER_HOSTNAME_LABEL, launchOffer.getHostname());
+        labels.put(LabelConstants.OFFER_HOSTNAME_LABEL, launchOffer.getHostname());
         return this;
     }
 
@@ -110,7 +112,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Sets a label on a TaskInfo indicating the Task's {@link GoalState}, e.g. RUNNING or FINISHED.
      */
     public SchedulerLabelWriter setGoalState(GoalState goalState) {
-        put(LabelConstants.GOAL_STATE_LABEL, goalState.name());
+        labels.put(LabelConstants.GOAL_STATE_LABEL, goalState.name());
         return this;
     }
 
@@ -120,7 +122,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * @param targetConfigurationId ID referencing a particular Configuration in the {@link ConfigStore}
      */
     public SchedulerLabelWriter setTargetConfiguration(UUID targetConfigurationId) {
-        put(LabelConstants.TARGET_CONFIGURATION_LABEL, targetConfigurationId.toString());
+        labels.put(LabelConstants.TARGET_CONFIGURATION_LABEL, targetConfigurationId.toString());
         return this;
     }
 
@@ -129,16 +131,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Any existing stored readiness check is overwritten.
      */
     public SchedulerLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
-        put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
-        return this;
-    }
-
-    /**
-     * Stores the value used for a dynamic port. This allows a degree of stickiness for dynamic ports, keeping them the
-     * same across (scheduler and/or task) restarts to avoid constantly re-reserving port resources.
-     */
-    public SchedulerLabelWriter setDynamicPort(String portName, long port) {
-        put(LabelUtils.toDynamicPortLabel(portName), Long.toString(port));
+        labels.put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
         return this;
     }
 
@@ -146,7 +139,7 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Returns the embedded readiness check, or an empty Optional if no readiness check is configured.
      */
     public Optional<HealthCheck> getReadinessCheck() throws TaskException {
-        Optional<String> encodedReadinessCheck = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> encodedReadinessCheck = labels.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         return (encodedReadinessCheck.isPresent())
                 ? Optional.of(LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
                 : Optional.empty();
@@ -156,6 +149,6 @@ public class SchedulerLabelWriter extends TaskDataWriter {
      * Returns a Protobuf representation of all contained entries.
      */
     public Labels toProto() {
-        return LabelUtils.toProto(map());
+        return LabelUtils.toProto(labels.map());
     }
 }

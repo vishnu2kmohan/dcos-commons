@@ -4,6 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -178,7 +179,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 // Extract resources from task to generate the new TaskInfo with
                 taskResources = getResourcesFromTask(taskSpec, taskInfoOptional.get());
                 // Copy any information specifying prior dynamic port values to the new task
-                dynamicPortValues = new SchedulerLabelReader(taskInfoOptional.get()).getAllDynamicPortValues(taskSpec);
+                try {
+                    dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValues(taskSpec, taskInfoOptional.get());
+                } catch (TaskException e) {
+                    throw new InvalidRequirementException(e);
+                }
                 if (dynamicPortValues.isEmpty()) {
                     // Fallback: extract preexisting dynamic port values from task env:
                     // TODO(nickbp): Remove this fallback on or after July 2017
@@ -374,7 +379,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     toHealthCheck(taskSpec.getReadinessCheck().get(), envWriter.getHealthCheckEnv()));
         }
         for (Map.Entry<String, Integer> entry : dynamicPortValues.entrySet()) {
-            labelWriter.setDynamicPort(entry.getKey(), entry.getValue());
+            labelWriter.setPort(entry.getKey(), entry.getValue());
         }
         taskInfoBuilder.setLabels(labelWriter.toProto());
 

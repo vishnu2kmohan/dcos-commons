@@ -320,7 +320,7 @@ public class ResourceUtils {
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
-        // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info 
+        // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
         builder.setVisibility(DiscoveryInfo.Visibility.CLUSTER);
         return builder;
@@ -586,17 +586,17 @@ public class ResourceUtils {
      * the return value in this case will be a resource builder created from that resource but attached to the task
      * builder.
      * @param taskBuilder the task builder to get the resource builder from
-     * @param resource the resource to get the name from or to use as template if no such builder exists on the task
+     * @param defaultResource the resource to get the name from, or to use if no such builder exists on the task
      * @return a resource builder attached to the task builder
      */
-    public static Resource.Builder getResourceBuilder(TaskInfo.Builder taskBuilder, Resource resource) {
+    public static Resource.Builder getResourceBuilder(TaskInfo.Builder taskBuilder, Resource defaultResource) {
         for (Resource.Builder r : taskBuilder.getResourcesBuilderList()) {
-            if (r.getName().equals(resource.getName())) {
+            if (r.getName().equals(defaultResource.getName())) {
                 return r;
             }
         }
 
-        return taskBuilder.addResourcesBuilder().mergeFrom(resource);
+        return taskBuilder.addResourcesBuilder().mergeFrom(defaultResource);
     }
 
     /**

@@ -91,14 +91,14 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
         }
         String taskName = getTaskName().get();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        Protos.Resource.Builder resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
+        ResourceUtils.mergeRanges(resourceBuilder, resource);
         try {
-            SchedulerEnvWriter.setDynamicPort(taskBuilder, portName, customEnvKey, port);
+            SchedulerEnvWriter.setPort(taskBuilder, resourceBuilder, portName, customEnvKey, port);
         } catch (TaskException e) {
             LOGGER.error(String.format(
                     "Failed to add PORT envvar and label to Task %s", taskBuilder.getName()), e);
         }
-        Protos.Resource.Builder resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
-        ResourceUtils.mergeRanges(resourceBuilder, resource);
     }
 
     @Override
@@ -113,11 +113,10 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
     private Optional<Integer> getCurrentDynamicPortValue(PodInfoBuilder podInfoBuilder) {
         // Figures out the current value, if any, that's being used for a requested dynamic port reservation.
         if (!getTaskName().isPresent()) {
-            // We don't store port labels at the executor level. Nothing to return.
+            // We don't assign ports at the executor level. Nothing to return.
             return Optional.empty();
         }
-        return new SchedulerLabelReader(podInfoBuilder.getTaskBuilder(getTaskName().get()))
-                .getDynamicPortValue(portName);
+        return SchedulerLabelReader.getAllDynamicPortValues(taskSpec, podInfoBuilder.getTaskBuilder(getTaskName().get()));
     }
 
     private static Optional<Integer> selectDynamicPort(
@@ -134,7 +133,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
             }
         }
 
-        // Also check other dynamically allocated ports.
+        // Also check other dynamically allocated ports set by other evaluation stages.
         for (Protos.Resource.Builder resourceBuilder : podInfoBuilder.getResourceBuilders()) {
             if (resourceBuilder.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 resourceBuilder.getRanges().getRangeList().stream()

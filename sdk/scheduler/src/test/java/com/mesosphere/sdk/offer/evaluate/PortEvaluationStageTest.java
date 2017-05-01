@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -123,23 +124,58 @@ public class PortEvaluationStageTest {
     @Test
     public void testGetClaimedDynamicPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
-        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        builder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder()
-                .setName("PORT_TEST_PORT")
-                .setValue("10000");
+        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(builder);
+        labelWriter.setPort("dyn-port-name", 10001);
+        builder.setLabels(labelWriter.toProto());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("port-test-port"));
+                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.empty());
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
-        Assert.assertTrue(outcome.isPassing());
+        Assert.assertTrue(outcome.toString(), outcome.isPassing());
+
+        Protos.Environment taskEnv =
+                podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getCommand().getEnvironment();
+        Assert.assertEquals("PORT_DYN_PORT_NAME", taskEnv.getVariables(0).getName());
+        Assert.assertEquals("10001", taskEnv.getVariables(0).getValue());
+
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
+        Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
+    }
+
+    @Test
+    public void testGetClaimedDynamicPortCustomEnv() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+
+        Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(builder);
+        labelWriter.setPort("dyn-port-name", 10000);
+        builder.setLabels(labelWriter.toProto());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("name-for-env"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertTrue(outcome.toString(), outcome.isPassing());
+
+        Protos.Environment taskEnv =
+                podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getCommand().getEnvironment();
+        Assert.assertEquals("NAME_FOR_ENV", taskEnv.getVariables(0).getName());
+        Assert.assertEquals("10000", taskEnv.getVariables(0).getValue());
 
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,10 +47,7 @@ public class CustomExecutorTest {
                 .setData(Protos.CommandInfo
                         .newBuilder()
                         .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
+                        .setEnvironment(createEnvironment(TASK_TYPE, TEST))
                         .build()
                         .toByteString())
                 .build();
@@ -75,10 +71,7 @@ public class CustomExecutorTest {
                 .setData(Protos.CommandInfo
                         .newBuilder()
                         .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
+                        .setEnvironment(createEnvironment(TASK_TYPE, TEST))
                         .build()
                         .toByteString())
                 .build();
@@ -130,10 +123,7 @@ public class CustomExecutorTest {
                 .setData(Protos.CommandInfo
                         .newBuilder()
                         .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
+                        .setEnvironment(createEnvironment(TASK_TYPE, TEST))
                         .build()
                         .toByteString())
                 .build();
@@ -157,5 +147,11 @@ public class CustomExecutorTest {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
         return new CustomExecutor(executorService, testExecutorTaskFactory);
+    }
+
+    public static Protos.Environment createEnvironment(String key, String value) {
+        Protos.Environment.Builder env = Protos.Environment.newBuilder();
+        env.addVariablesBuilder().setName(key).setValue(value);
+        return env.build();
     }
 }
