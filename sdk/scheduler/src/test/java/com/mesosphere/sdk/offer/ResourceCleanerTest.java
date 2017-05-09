@@ -5,6 +5,8 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
+
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -152,28 +154,23 @@ public class ResourceCleanerTest {
 
             OfferRecommendation rec = recommendations.get(0);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(1);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
 
             rec = recommendations.get(2);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(3);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_2_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_2_ID, getResourceId(rec));
 
             rec = recommendations.get(4);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
         }
     }
 
@@ -196,43 +193,35 @@ public class ResourceCleanerTest {
 
             OfferRecommendation rec = recommendations.get(0);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(1);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(EXPECTED_RESOURCE_2_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(EXPECTED_RESOURCE_2_ID, getResourceId(rec));
 
             rec = recommendations.get(2);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
 
             rec = recommendations.get(3);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(4);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(EXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(EXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(5);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_2_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_2_ID, getResourceId(rec));
 
             rec = recommendations.get(6);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(EXPECTED_RESOURCE_2_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(EXPECTED_RESOURCE_2_ID, getResourceId(rec));
 
             rec = recommendations.get(7);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
         }
     }
 
@@ -255,28 +244,23 @@ public class ResourceCleanerTest {
 
             OfferRecommendation rec = recommendations.get(0);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(1);
             assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
 
             rec = recommendations.get(2);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_1_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_1_ID, getResourceId(rec));
 
             rec = recommendations.get(3);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_2_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_2_ID, getResourceId(rec));
 
             rec = recommendations.get(4);
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-            assertEquals(UNEXPECTED_RESOURCE_3_ID,
-                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+            assertEquals(UNEXPECTED_RESOURCE_3_ID, getResourceId(rec));
         }
     }
 
@@ -290,5 +274,9 @@ public class ResourceCleanerTest {
 
             assertEquals("Got: " + recommendations, 0, recommendations.size());
         }
+    }
+
+    private static String getResourceId(OfferRecommendation rec) {
+        return new SchedulerResourceLabelReader(rec.getOffer().getResources(0)).getResourceId().get();
     }
 }

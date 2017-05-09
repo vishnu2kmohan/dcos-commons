@@ -11,7 +11,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
-import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
@@ -20,6 +19,7 @@ import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
@@ -46,9 +46,9 @@ public class OfferRequirementTestUtils {
         TaskRequirement taskRequirement = new TaskRequirement(
                 TaskTestUtils.getTaskInfo(Arrays.asList(resource)), getResourceRequirements(Arrays.asList(resource)));
         ExecutorRequirement executorRequirement = ExecutorRequirement.create(
-                StringUtils.isEmpty(ResourceUtils.getResourceId(executorResource)) ?
-                        TaskTestUtils.getExecutorInfo(executorResource) :
-                        TaskTestUtils.getExistingExecutorInfo(executorResource),
+                new SchedulerResourceLabelReader(executorResource).getResourceId().isPresent()
+                        ? TaskTestUtils.getExistingExecutorInfo(executorResource)
+                        : TaskTestUtils.getExecutorInfo(executorResource),
                 getResourceRequirements(Arrays.asList(executorResource)));
 
         return new OfferRequirement(
@@ -128,7 +128,7 @@ public class OfferRequirementTestUtils {
             switch (resource.getName()) {
                 case Constants.PORTS_RESOURCE_TYPE:
                     int port = (int) resource.getRanges().getRange(0).getBegin();
-                    if (ResourceUtils.getLabel(resource, TestConstants.HAS_VIP_LABEL) == null) {
+                    if (ResourceTestUtils.getLabel(resource, TestConstants.HAS_VIP_LABEL) == null) {
                         portRequirements.add(new PortRequirement(
                                 resource,
                                 "port-name-" + numPorts,
@@ -150,7 +150,7 @@ public class OfferRequirementTestUtils {
                     ++numPorts;
                     break;
                 case Constants.DISK_RESOURCE_TYPE:
-                    String containerPath = ResourceUtils.getLabel(resource, TestConstants.CONTAINER_PATH_LABEL);
+                    String containerPath = ResourceTestUtils.getLabel(resource, TestConstants.CONTAINER_PATH_LABEL);
                     if (containerPath != null) {
                         Protos.Resource.Builder builder = resource.toBuilder();
                         builder.getDiskBuilder().getVolumeBuilder().setContainerPath(containerPath);

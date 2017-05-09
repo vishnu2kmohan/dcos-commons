@@ -75,7 +75,7 @@ public class NamedVIPSpec extends PortSpec {
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
         Protos.Resource portResource = resource == null ?
                 ResourceUtils.getDesiredResource(this) :
-                ResourceUtils.withValue(resource, getValue());
+                ResourceUtils.withValue(resource.toBuilder(), getValue()).build();
         return new NamedVIPRequirement(
                 portResource,
                 getPortName(),

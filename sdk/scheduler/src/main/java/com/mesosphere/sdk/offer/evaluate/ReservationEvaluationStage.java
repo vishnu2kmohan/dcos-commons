@@ -2,7 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
-import org.apache.mesos.Protos;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +37,11 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
             if (resourceIds.contains(entry.getKey())) {
                 logger.info("    Remaining reservation for resource {} unclaimed, generating UNRESERVE operation",
                         TextFormat.shortDebugString(entry.getValue().getResource()));
-                Protos.Resource unreserveResource = ResourceUtils.setResourceId(
-                        entry.getValue().getResource(), entry.getKey());
-                recommendations.add(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
+                recommendations.add(new UnreserveOfferRecommendation(
+                        mesosResourcePool.getOffer(),
+                        new SchedulerResourceLabelWriter(entry.getValue().getResource())
+                                .setResourceId(entry.getKey())
+                                .toProto()));
             }
         }
         return pass(this, "Added reservation information to offer requirement")

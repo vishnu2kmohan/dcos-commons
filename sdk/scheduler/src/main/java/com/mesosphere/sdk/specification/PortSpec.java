@@ -58,7 +58,7 @@ public class PortSpec extends DefaultResourceSpec {
         return new PortRequirement(
                 resource == null ?
                         ResourceUtils.getDesiredResource(this) :
-                        ResourceUtils.withValue(resource, getValue()),
+                        ResourceUtils.withValue(resource.toBuilder(), getValue()).build(),
                 getPortName(),
                 getPortValue(),
                 getEnvKey());

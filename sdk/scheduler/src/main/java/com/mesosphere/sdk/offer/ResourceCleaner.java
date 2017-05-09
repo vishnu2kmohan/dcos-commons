@@ -6,13 +6,17 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
+
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,9 +144,9 @@ public class ResourceCleaner {
         Set<String> resourceIds = new HashSet<>();
 
         for (Resource resource : resources) {
-            String resourceId = ResourceUtils.getResourceId(resource);
-            if (resourceId != null) {
-                resourceIds.add(resourceId);
+            Optional<String> resourceId = new SchedulerResourceLabelReader(resource).getResourceId();
+            if (resourceId.isPresent()) {
+                resourceIds.add(resourceId.get());
             }
         }
 
@@ -176,9 +180,9 @@ public class ResourceCleaner {
         Map<String, Resource> reservedResources = new HashMap<String, Resource>();
 
         for (Resource resource : offer.getResourcesList()) {
-            String resourceId = ResourceUtils.getResourceId(resource);
-            if (resourceId != null) {
-                reservedResources.put(resourceId, resource);
+            Optional<String> resourceId = new SchedulerResourceLabelReader(resource).getResourceId();
+            if (resourceId.isPresent()) {
+                reservedResources.put(resourceId.get(), resource);
             }
         }
 

@@ -2,10 +2,14 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,11 +71,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
         // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
         // we want to use the reservation ID we created for the first port in this cycle for all subsequent ports.
         try {
-            resourceId = getTaskName().isPresent() ?
-                    ResourceUtils.getResourceId(ResourceUtils.getResource(
-                            podInfoBuilder.getTaskBuilder(getTaskName().get()), Constants.PORTS_RESOURCE_TYPE)) :
-                    ResourceUtils.getResourceId(ResourceUtils.getResource(
-                            podInfoBuilder.getExecutorBuilder().get(), Constants.PORTS_RESOURCE_TYPE));
+            Protos.Resource resource = getTaskName().isPresent()
+                    ? ResourceUtils.getResource(
+                            podInfoBuilder.getTaskBuilder(getTaskName().get()), Constants.PORTS_RESOURCE_TYPE)
+                    : ResourceUtils.getResource(
+                            podInfoBuilder.getExecutorBuilder().get(), Constants.PORTS_RESOURCE_TYPE);
+            resourceId = new SchedulerResourceLabelReader(resource).getResourceId().get();
         } catch (IllegalArgumentException e) {
             // There have been no previous ports in this evaluation cycle, so there's no resource on the task builder
             // to get the resource id from.
@@ -91,21 +96,34 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
         }
         String taskName = getTaskName().get();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-        Protos.Resource.Builder resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
+        Protos.Resource.Builder resourceBuilder;
+        for (Resource.Builder r : taskBuilder.getResourcesBuilderList()) {
+            if (r.getName().equals(resource.getName())) {
+                resourceBuilder = r;
+                break;
+            }
+        }
+        if (resourceBuilder == null) {
+            resourceBuilder = taskBuilder.addResourcesBuilder().mergeFrom(resource);
+        }
         ResourceUtils.mergeRanges(resourceBuilder, resource);
+
+        // Update task env(s), then resource labels:
         try {
-            SchedulerEnvWriter.setPort(taskBuilder, resourceBuilder, portName, customEnvKey, port);
+            SchedulerEnvWriter.setPort(taskBuilder, portName, customEnvKey, port);
         } catch (TaskException e) {
             LOGGER.error(String.format(
-                    "Failed to add PORT envvar and label to Task %s", taskBuilder.getName()), e);
+                    "Failed to add PORT envvar to Task %s", taskBuilder.getName()), e);
         }
+        // TODO update the resource **in the task**:
+        resourceBuilder = new SchedulerResourceLabelWriter(resourceBuilder).setPort(portName, port).toProto();
     }
 
     @Override
     protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
         Protos.Resource reservedResource = super.getFulfilledResource(resource);
         if (!StringUtils.isBlank(resourceId)) {
-            reservedResource = ResourceUtils.setResourceId(ResourceUtils.clearResourceId(reservedResource), resourceId);
+            reservedResource = new SchedulerResourceLabelWriter(reservedResource).setResourceId(resourceId).toProto();
         }
         return reservedResource;
     }
@@ -116,7 +134,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
             // We don't assign ports at the executor level. Nothing to return.
             return Optional.empty();
         }
-        return SchedulerLabelReader.getAllDynamicPortValues(taskSpec, podInfoBuilder.getTaskBuilder(getTaskName().get()));
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
+        return SchedulerLabelReader.getDynamicPortValue(taskBuilder.getResourcesList(), portName);
     }
 
     private static Optional<Integer> selectDynamicPort(

@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
+    private static final String RESOURCE_ID_KEY = "resource_id";
+
     @Mock ServiceSpec serviceSpec;
 
     @Test
@@ -92,7 +94,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testUpdateDynamicToStaticPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Resource updatedResource = ResourceUtils.setLabel(
+        Resource updatedResource = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId),
                 TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL,
                 Integer.toString(666));
@@ -172,7 +174,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchExpectedDynamicPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Resource desiredResource = ResourceUtils.setLabel(
+        Resource desiredResource = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId),
                 TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL,
                 Integer.toString(10000));
@@ -264,7 +266,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveTaskNamedVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredPorts = ResourceUtils.setLabel(
+        Resource desiredPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 10000, 10000),
                 TestConstants.HAS_VIP_LABEL,
                 "true");
@@ -300,7 +302,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveTaskDynamicVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredPorts = ResourceUtils.setLabel(
+        Resource desiredPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 0, 0),
                 TestConstants.HAS_VIP_LABEL,
                 "true");
@@ -389,7 +391,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
         // Validate CREATE Operation
@@ -499,7 +501,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
         // Validate CREATE Operation
@@ -570,7 +572,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
@@ -599,7 +601,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
@@ -631,7 +633,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
         // Validate CREATE Operation
@@ -704,7 +706,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
 
@@ -799,7 +801,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
 
         // Validate LAUNCH Operation
@@ -852,7 +854,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, unreserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
+        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
 
         // Validate LAUNCH Operation

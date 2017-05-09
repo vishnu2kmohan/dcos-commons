@@ -15,7 +15,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
  * DC/OS to pick up the specified named VIP mapping.
  */
 public class NamedVIPEvaluationStage extends PortEvaluationStage {
-    
+
     private final String protocol;
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;

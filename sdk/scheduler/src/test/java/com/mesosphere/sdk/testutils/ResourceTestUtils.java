@@ -1,7 +1,10 @@
 package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
+
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 
 import java.util.Arrays;
@@ -24,7 +27,9 @@ public class ResourceTestUtils {
     }
 
     public static Resource getUnreservedMountVolume(double diskSize) {
-        return ResourceUtils.getUnreservedMountVolume(diskSize, TestConstants.MOUNT_ROOT);
+        return ResourceUtils.getUnreservedScalar(Constants.DISK_RESOURCE_TYPE, diskSize).toBuilder()
+                .setDisk(ResourceUtils.getUnreservedMountVolumeDiskInfo(TestConstants.MOUNT_ROOT))
+                .build();
     }
 
     public static Resource getExpectedMountVolume(double diskSize) {
@@ -123,4 +128,20 @@ public class ResourceTestUtils {
         return ResourceTestUtils.getDesiredScalar("mem", mem);
     }
 
+    public static Resource setLabel(Resource resource, String key, String value) {
+        Resource.Builder builder = resource.toBuilder();
+        builder.getReservationBuilder().getLabelsBuilder().addLabelsBuilder().setKey(key).setValue(value);
+        return builder.build();
+    }
+
+
+    public static String getLabel(Resource resource, String key) {
+        for (Label l : resource.getReservation().getLabels().getLabelsList()) {
+            if (l.getKey().equals(key)) {
+                return l.getValue();
+            }
+        }
+
+        return null;
+    }
 }

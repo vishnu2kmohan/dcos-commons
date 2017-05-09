@@ -4,7 +4,9 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -22,13 +24,14 @@ public class TaskTestUtils {
     }
 
     public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources, Integer index) {
-        Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
+        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder()
                 .setTaskId(TestConstants.TASK_ID)
                 .setName(TestConstants.TASK_NAME)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setCommand(TestConstants.COMMAND_INFO)
                 .setContainer(TestConstants.CONTAINER_INFO)
                 .setLabels(TestConstants.getRequiredTaskLabels(index));
+        List<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource r : resources) {
             String resourceId = "";
             String dynamicPortAssignment = null;
@@ -47,28 +50,30 @@ public class TaskTestUtils {
                 Long portValue = dynamicPortAssignment == null ?
                         r.getRanges().getRange(0).getBegin() : Long.parseLong(dynamicPortAssignment);
                 if (!resourceId.isEmpty()) {
+                    // Update task env(s), and resource labels:
                     try {
                         SchedulerEnvWriter.setPort(
-                                builder, "some-port", Optional.of(TestConstants.PORT_ENV_NAME), portValue);
+                                taskBuilder, "some-port", Optional.of(TestConstants.PORT_ENV_NAME), portValue);
                     } catch (TaskException e) {
                         throw new IllegalStateException(e);
                     }
+                    r = new SchedulerResourceLabelWriter(r).setPort("some-port", portValue).toProto();
+
                     if (vipAssignment != null) {
-                        Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
-                        discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
-                        discoveryBuilder.setName(builder.getName());
-                        discoveryBuilder.getPortsBuilder()
-                                .addPortsBuilder()
-                                .setNumber((int) (long) portValue)
-                                .getLabelsBuilder()
-                                .addLabelsBuilder()
-                                .setKey("VIP_" + UUID.randomUUID().toString())
-                                .setValue(vipAssignment);
+                        taskBuilder.getDiscoveryBuilder()
+                                .setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER)
+                                .setName(taskBuilder.getName())
+                                .getPortsBuilder().addPortsBuilder()
+                                        .setNumber((int) (long) portValue)
+                                        .getLabelsBuilder().addLabelsBuilder()
+                                                .setKey("VIP_" + UUID.randomUUID().toString())
+                                                .setValue(vipAssignment);
                     }
                 }
             }
+            updatedResources.add(r);
         }
-        return builder.addAllResources(resources).build();
+        return taskBuilder.addAllResources(updatedResources).build();
     }
 
     // This suppression is OK in test code only.  There's a chance you hit MIN_VALUE

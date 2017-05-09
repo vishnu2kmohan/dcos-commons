@@ -42,7 +42,7 @@ public class ResourceRequirement {
     }
 
     public String getResourceId() {
-        return mesosResource.getResourceId();
+        return mesosResource.getResourceId().orElse("");
     }
 
     /**
@@ -112,7 +112,7 @@ public class ResourceRequirement {
     }
 
     private boolean hasResourceId() {
-        return mesosResource.hasResourceId();
+        return mesosResource.getResourceId().isPresent();
     }
 
     private boolean hasPersistenceId() {

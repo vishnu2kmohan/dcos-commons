@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
@@ -75,79 +76,7 @@ public class ResourceUtilsTest {
 
         validateRanges(testRanges, resource.getRanges().getRangeList());
         validateRolePrincipal(resource);
-        Assert.assertEquals(expectedResourceId, ResourceUtils.getResourceId(resource));
-    }
-
-    @Test
-    public void testClearTaskInfoResourceIds() {
-        Resource resource = ResourceUtils.getDesiredScalar(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "cpus",
-                1.0);
-        resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
-
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .addResources(resource)
-                .build();
-        Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getResources(0)));
-
-        taskInfo = ResourceUtils.clearResourceIds(taskInfo);
-        Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
-    }
-
-    @Test
-    public void testClearExecutorInfoResourceIds() {
-        Resource resource = ResourceUtils.getDesiredScalar(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "cpus",
-                1.0);
-        resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
-
-        Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-                .setExecutorId(TestConstants.EXECUTOR_ID)
-                .setCommand(Protos.CommandInfo.newBuilder().build())
-                .addResources(resource)
-                .build();
-        Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(executorInfo.getResources(0)));
-
-        executorInfo = ResourceUtils.clearResourceIds(executorInfo);
-        Assert.assertNull(ResourceUtils.getResourceId(executorInfo.getResources(0)));
-    }
-
-    @Test
-    public void testClearTaskInfoAndExecutorInfoResourceIds() {
-        Resource resource = ResourceUtils.getDesiredScalar(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "cpus",
-                1.0);
-        resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
-
-        Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-                .setExecutorId(TestConstants.EXECUTOR_ID)
-                .setCommand(Protos.CommandInfo.newBuilder().build())
-                .addResources(resource)
-                .build();
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .addResources(resource)
-                .setExecutor(executorInfo)
-                .build();
-
-        Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getResources(0)));
-        Assert.assertEquals(
-                TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
-
-        taskInfo = ResourceUtils.clearResourceIds(taskInfo);
-        Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
-        Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
+        Assert.assertEquals(expectedResourceId, new SchedulerResourceLabelReader(resource).getResourceId().get());
     }
 
     private void validateRanges(List<Protos.Value.Range> expectedRanges, List<Protos.Value.Range> actualRanges) {

@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -116,9 +118,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             reserveValue);
 
                     if (mesosResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
-                        reserveResource = ResourceUtils.setResourceId(reserveResource, resourceId);
                         offerRecommendation = new ReserveOfferRecommendation(
-                                mesosResourcePool.getOffer(), reserveResource);
+                                mesosResourcePool.getOffer(),
+                                new SchedulerResourceLabelWriter(reserveResource).setResourceId(resourceId).toProto());
                         fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
                     } else {
                         return fail(this, "Insufficient resources to increase reservation of resource '%s'.",
@@ -172,12 +174,15 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     protected Resource getFulfilledResource(Resource resource) {
         Resource.Builder builder = resource.toBuilder().setRole(getResourceRequirement().getRole());
-        Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
-        if (reservationInfo.isPresent()) {
-            builder.setReservation(reservationInfo.get());
-        }
 
-        return builder.build();
+        ResourceRequirement resourceRequirement = getResourceRequirement();
+        if (resourceRequirement.reservesResource()) {
+            return new SchedulerResourceLabelWriter(builder)
+                    .setResourceId(UUID.randomUUID().toString())
+                    .toProto();
+        } else {
+            return builder.build();
+        }
     }
 
     protected void setProtos(PodInfoBuilder podInfoBuilder, Resource resource) {
@@ -187,21 +192,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.addResources(resource);
-        }
-    }
-
-    protected Optional<Resource.ReservationInfo> getFulfilledReservationInfo() {
-        ResourceRequirement resourceRequirement = getResourceRequirement();
-
-        if (!resourceRequirement.reservesResource()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(Resource.ReservationInfo
-                    .newBuilder(resourceRequirement.getResource().getReservation())
-                    .setLabels(ResourceUtils.setResourceId(
-                            resourceRequirement.getResource().getReservation().getLabels(),
-                            UUID.randomUUID().toString()))
-                    .build());
         }
     }
 }

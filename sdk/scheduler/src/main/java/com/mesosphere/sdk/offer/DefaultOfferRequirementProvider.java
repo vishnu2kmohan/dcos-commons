@@ -180,7 +180,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 taskResources = getResourcesFromTask(taskSpec, taskInfoOptional.get());
                 // Copy any information specifying prior dynamic port values to the new task
                 try {
-                    dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValues(taskSpec, taskInfoOptional.get());
+                    dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValues(
+                            taskInfoOptional.get().getResourcesList(), taskSpec);
                 } catch (TaskException e) {
                     throw new InvalidRequirementException(e);
                 }

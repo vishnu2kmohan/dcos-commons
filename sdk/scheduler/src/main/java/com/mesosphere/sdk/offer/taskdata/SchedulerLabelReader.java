@@ -139,13 +139,27 @@ public class SchedulerLabelReader {
     }
 
     /**
-     * Returns a mapping of all dynamic port values from the provided {@link TaskInfo}, using the provided
+     * Returns the specified dynamic port value from the provided {@link TaskInfo}, or an empty {@link Optional} if a
+     * value for the specified port name wasn't found.
+     */
+    public static Optional<Integer> getDynamicPortValue(Collection<Resource> resources, String portName) {
+        for (Resource resource : resources) {
+            Optional<Integer> portValue = new SchedulerResourceLabelReader(resource).getPortValue(portName);
+            if (portValue.isPresent()) {
+                return portValue;
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns a mapping of all assigned dynamic port values from the provided {@link TaskInfo}, using the provided
      * {@link TaskSpec} to determine the ports which are dynamic.
      */
-    public static Map<String, Integer> getAllDynamicPortValues(TaskSpec taskSpec, TaskInfo taskInfo)
+    public static Map<String, Integer> getAllDynamicPortValues(Collection<Resource> resources, TaskSpec taskSpec)
             throws TaskException {
         Map<String, Integer> allResourcePortValues = new HashMap<>();
-        for (Resource resource : taskInfo.getResourcesList()) {
+        for (Resource resource : resources) {
             allResourcePortValues.putAll(new SchedulerResourceLabelReader(resource).getAllPortValues());
         }
         Map<String, Integer> dynamicPortValues = new HashMap<>();
@@ -185,7 +199,6 @@ public class SchedulerLabelReader {
         }
         return dynamicPortValues;
     }
-
 
     private static Collection<PortSpec> getDynamicPortSpecs(TaskSpec taskSpec) {
         Collection<PortSpec> dynamicPortSpecs = new ArrayList<>();

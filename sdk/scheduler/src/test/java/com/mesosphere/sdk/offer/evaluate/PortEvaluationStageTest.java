@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -133,6 +134,7 @@ public class PortEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        SchedulerEnvWriter.setPort(builder, "dyn-port-name", Optional.empty(), 10001);
         SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(builder);
         labelWriter.setPort("dyn-port-name", 10001);
         builder.setLabels(labelWriter.toProto());

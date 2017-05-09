@@ -1,20 +1,16 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
-import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
-import org.apache.mesos.Protos.Resource.DiskInfo.Source;
-import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
-import org.apache.mesos.Protos.Value.Ranges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
@@ -25,23 +21,15 @@ public class ResourceUtils {
     public static final String VIP_PREFIX = "VIP_";
     public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
-    public static Resource getUnreservedResource(String name, Value value) {
-        return setResource(Resource.newBuilder().setRole("*"), name, value);
+    public static Resource.Builder getUnreservedResource(String name, Value value, String role) {
+        return setResource(Resource.newBuilder().setRole(role), name, value);
     }
 
     public static Resource getDesiredResource(ResourceSpec resourceSpec) {
-        return getDesiredResource(
-                resourceSpec.getRole(),
-                resourceSpec.getPrincipal(),
-                resourceSpec.getName(),
-                resourceSpec.getValue());
-    }
-
-    public static Resource getDesiredResource(String role, String principal, String name, Value value) {
-        return Resource.newBuilder(getUnreservedResource(name, value))
-                .setRole(role)
-                .setReservation(getDesiredReservationInfo(principal))
-                .build();
+        Resource.Builder resBuilder =
+                getUnreservedResource(resourceSpec.getName(), resourceSpec.getValue(), resourceSpec.getRole());
+        resBuilder.getReservationBuilder().setPrincipal(resourceSpec.getPrincipal());
+        return resBuilder.build();
     }
 
     public static Resource getExpectedResource(ResourceSpec resourceSpec) {
@@ -53,26 +41,15 @@ public class ResourceUtils {
     }
 
     public static Resource getUnreservedMountVolume(double diskSize, String mountRoot) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
+        return getUnreservedResource(Constants.DISK_RESOURCE_TYPE, getScalar(diskSize), Constants.ANY_ROLE)
+                .setDisk(getUnreservedMountVolumeDiskInfo(mountRoot))
                 .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
-        resBuilder.setRole("*");
-        resBuilder.setDisk(getUnreservedMountVolumeDiskInfo(mountRoot));
-
-        return resBuilder.build();
     }
 
     public static Resource getDesiredMountVolume(String role, String principal, double diskSize, String containerPath) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(getUnreservedResource("disk", diskValue));
-        resBuilder.setRole(role);
-        resBuilder.setReservation(getDesiredReservationInfo(principal));
-        resBuilder.setDisk(getDesiredMountVolumeDiskInfo(principal, containerPath));
+        Resource.Builder resBuilder = getUnreservedResource(Constants.DISK_RESOURCE_TYPE, getScalar(diskSize), role)
+                .setDisk(getDesiredMountVolumeDiskInfo(principal, containerPath));
+        resBuilder.getReservationBuilder().setPrincipal(principal);
         return resBuilder.build();
     }
 
@@ -84,56 +61,65 @@ public class ResourceUtils {
             String mountRoot,
             String containerPath,
             String persistenceId) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
-        resBuilder.setRole(role);
-        resBuilder.setDisk(getExpectedMountVolumeDiskInfo(mountRoot, containerPath, persistenceId, principal));
-        resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
-
-        return resBuilder.build();
+        Resource.Builder resBuilder = getUnreservedResource(Constants.DISK_RESOURCE_TYPE, getScalar(diskSize), role)
+                .setDisk(getExpectedMountVolumeDiskInfo(mountRoot, containerPath, persistenceId, principal));
+        resBuilder.getReservationBuilder().setPrincipal(principal);
+        return new SchedulerResourceLabelWriter(resBuilder)
+                .setResourceId(resourceId)
+                .toProto();
     }
 
-    public static Resource withValue(Resource resource, Value value) {
-        if (resource.getType() != value.getType()) {
+    public static Resource.Builder withValue(Resource.Builder resBuilder, Value value) {
+        if (resBuilder.getType() != value.getType()) {
             throw new IllegalArgumentException(
                     String.format("Resource type %s does not equal value type %s",
-                            resource.getType().toString(), value.getType().toString()));
+                            resBuilder.getType().toString(), value.getType().toString()));
         }
 
-        switch (resource.getType()) {
+        switch (resBuilder.getType()) {
             case SCALAR:
-                return resource.toBuilder().setScalar(value.getScalar()).build();
+                return resBuilder.setScalar(value.getScalar());
             case RANGES:
-                return resource.toBuilder().setRanges(value.getRanges()).build();
+                return resBuilder.setRanges(value.getRanges());
             case SET:
-                return resource.toBuilder().setSet(value.getSet()).build();
+                return resBuilder.setSet(value.getSet());
             default:
-                throw new IllegalArgumentException("Unknown resource type: " + resource.getType().toString());
+                throw new IllegalArgumentException(String.format("Unknown resource type: %s", resBuilder.getType()));
+        }
+    }
+
+    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpec resourceSpec)
+            throws IllegalArgumentException {
+        return withValue(resource.toBuilder(), resourceSpec.getValue()).build();
+    }
+
+    private static Resource.Builder setResource(Resource.Builder resBuilder, String name, Value value) {
+        Value.Type type = value.getType();
+
+        resBuilder
+                .setName(name)
+                .setType(type);
+
+        switch (type) {
+            case SCALAR:
+                return resBuilder.setScalar(value.getScalar());
+            case RANGES:
+                return resBuilder.setRanges(value.getRanges());
+            case SET:
+                return resBuilder.setSet(value.getSet());
+            default:
+                throw new IllegalArgumentException(String.format("Unsupported resource value type: %s", type));
         }
     }
 
     public static Resource getUnreservedRootVolume(double diskSize) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
-        resBuilder.setRole("*");
-        return resBuilder.build();
+        return getUnreservedScalar(Constants.DISK_RESOURCE_TYPE, diskSize);
     }
 
     public static Resource getDesiredRootVolume(String role, String principal, double diskSize, String containerPath) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(getUnreservedResource("disk", diskValue));
-        resBuilder.setRole(role);
-        resBuilder.setReservation(getDesiredReservationInfo(principal));
-        resBuilder.setDisk(getDesiredRootVolumeDiskInfo(principal, containerPath));
+        Resource.Builder resBuilder = getUnreservedResource(Constants.DISK_RESOURCE_TYPE, getScalar(diskSize), role)
+                .setDisk(getExpectedRootVolumeDiskInfo("", containerPath, principal));
+        resBuilder.getReservationBuilder().setPrincipal(principal);
         return resBuilder.build();
     }
 
@@ -144,16 +130,10 @@ public class ResourceUtils {
             String role,
             String principal,
             String persistenceId) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
-        resBuilder.setRole(role);
-        resBuilder.setDisk(getExpectedRootVolumeDiskInfo(persistenceId, containerPath, principal));
-        resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
-
-        return resBuilder.build();
+        Resource.Builder resBuilder = getUnreservedResource(Constants.DISK_RESOURCE_TYPE, getScalar(diskSize), role)
+                .setDisk(getExpectedRootVolumeDiskInfo(persistenceId, containerPath, principal));
+        resBuilder.getReservationBuilder().setPrincipal(principal);
+        return new SchedulerResourceLabelWriter(resBuilder).setResourceId(resourceId).toProto();
     }
 
     public static Resource getExpectedResource(String role, String principal, String name, Value value) {
@@ -165,88 +145,37 @@ public class ResourceUtils {
                                                String name,
                                                Value value,
                                                String resourceId) {
-        return Resource.newBuilder(getUnreservedResource(name, value))
-                .setRole(role)
-                .setReservation(getDesiredReservationInfo(principal, resourceId))
-                .build();
+        Resource.Builder resBuilder = getUnreservedResource(name, value, role);
+        resBuilder.getReservationBuilder().setPrincipal(principal);
+        return new SchedulerResourceLabelWriter(resBuilder).setResourceId(resourceId).toProto();
     }
 
     public static Resource getUnreservedScalar(String name, double value) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(value))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource(name, val));
-        resBuilder.setRole("*");
-
-        return resBuilder.build();
+        return getUnreservedResource(name, getScalar(value), Constants.ANY_ROLE).build();
     }
 
     public static Resource getExpectedScalar(
-            String name,
-            double value,
-            String resourceId,
-            String role,
-            String principal) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(value))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource(name, val));
-        resBuilder.setRole(role);
-        resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
-
-        return resBuilder.build();
+            String name, double value, String resourceId, String role, String principal) {
+        return getExpectedResource(role, principal, name, getScalar(value), resourceId);
     }
 
     public static Resource getDesiredScalar(String role, String principal, String name, double value) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(value))
-                .build();
-        return getExpectedResource(role, principal, name, val);
+        return getExpectedResource(role, principal, name, getScalar(value));
     }
 
     public static Resource getUnreservedRanges(String name, List<Range> ranges) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.RANGES)
-                .setRanges(Value.Ranges.newBuilder().addAllRange(ranges))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource(name, val));
-        resBuilder.setRole("*");
-
-        return resBuilder.build();
+        return getUnreservedResource(name, getRanges(ranges), Constants.ANY_ROLE).build();
     }
 
     public static Resource getDesiredRanges(String role, String principal, String name, List<Range> ranges) {
-        return getExpectedResource(
-                role,
-                principal,
-                name,
-                Value.newBuilder()
-                        .setType(Value.Type.RANGES)
-                        .setRanges(Ranges.newBuilder()
-                                .addAllRange(ranges)
-                                .build())
-                        .build());
+        return getExpectedResource(role, principal, name, getRanges(ranges));
     }
 
     public static Resource getExpectedRanges(
-            String name,
-            List<Range> ranges,
-            String resourceId,
-            String role,
-            String principal) {
-
-        Value val = Value.newBuilder()
-                .setType(Value.Type.RANGES)
-                .setRanges(Value.Ranges.newBuilder().addAllRange(ranges))
-                .build();
-        Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource(name, val));
-        resBuilder.setRole(role);
-        resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
-
-        return resBuilder.build();
+            String name, List<Range> ranges, String resourceId, String role, String principal) {
+        Resource.Builder resBuilder = getUnreservedResource(name, getRanges(ranges), role);
+        resBuilder.getReservationBuilder().setPrincipal(principal);
+        return new SchedulerResourceLabelWriter(resBuilder).setResourceId(resourceId).toProto();
     }
 
     public static TaskInfo.Builder addVIP(
@@ -355,24 +284,7 @@ public class ResourceUtils {
     }
 
     public static Resource setValue(Resource resource, Value value) {
-        return setResource(Resource.newBuilder(resource), resource.getName(), value);
-    }
-
-    public static Resource setResourceId(Resource resource, String resourceId) {
-        return Resource.newBuilder(resource)
-                .setReservation(setResourceId(resource.getReservation(), resourceId))
-                .build();
-    }
-
-    public static String getResourceId(Resource resource) {
-        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
-            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-                if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                    return label.getValue();
-                }
-            }
-        }
-        return null;
+        return setResource(Resource.newBuilder(resource), resource.getName(), value).build();
     }
 
     public static String getPersistenceId(Resource resource) {
@@ -410,7 +322,7 @@ public class ResourceUtils {
             if (resource.hasDisk()) {
                 resource = Protos.Resource.newBuilder(resource)
                         .setDisk(resource.getDisk().toBuilder()
-                                .setPersistence(Persistence.newBuilder().setId(""))
+                                .setPersistence(DiskInfo.Persistence.newBuilder().setId(""))
                 ).build();
             }
             resources.add(resource);
@@ -444,68 +356,6 @@ public class ResourceUtils {
         }
 
         return false;
-    }
-
-    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpec resourceSpec)
-            throws IllegalArgumentException {
-        Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
-        switch (resource.getType()) {
-            case SCALAR:
-                return builder.setScalar(resourceSpec.getValue().getScalar()).build();
-            case RANGES:
-                return builder.setRanges(resourceSpec.getValue().getRanges()).build();
-            case SET:
-                return builder.setSet(resourceSpec.getValue().getSet()).build();
-            default:
-                throw new IllegalArgumentException("Unexpected Resource type encountered: " + resource.getType());
-        }
-    }
-
-    /**
-     * This method replaces the {@link Resource} on the {@link TaskInfo.Builder} with the supplied resource, if a
-     * resource with that name already exists on that task. If it isn't, an {@link IllegalArgumentException} is thrown.
-     * @param builder the task to install the resource on
-     * @param resource the resource to install on the task
-     * @return the supplied builder, modified to include the resource
-     */
-    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
-        if (resource.hasDisk()) {
-            return setDiskResource(builder, resource);
-        }
-
-        for (int i = 0; i < builder.getResourcesCount(); ++i) {
-            if (builder.getResources(i).getName().equals(resource.getName())) {
-                builder.setResources(i, resource);
-                return builder;
-            }
-        }
-
-        throw new IllegalArgumentException(String.format(
-                "Task has no resource with name '%s': %s",
-                resource.getName(), TextFormat.shortDebugString(builder.build())));
-    }
-
-    private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
-        if (!resource.hasDisk() || !resource.getDisk().hasVolume()) {
-            throw new IllegalArgumentException(String.format("Resource should have a disk with a volume."));
-        }
-
-        String resourceContainerPath = resource.getDisk().getVolume().getContainerPath();
-        OptionalInt index = IntStream.range(0, builder.getResourcesCount())
-                .filter(i -> builder.getResources(i).hasDisk())
-                .filter(i -> builder.getResources(i).getDisk().hasVolume())
-                .filter(i -> resourceContainerPath.equals(
-                        builder.getResources(i).getDisk().getVolume().getContainerPath()))
-                .findFirst();
-
-        if (index.isPresent()) {
-            builder.setResources(index.getAsInt(), resource);
-            return builder;
-        } else {
-            throw new TaskException(String.format(
-                    "Task has no matching disk resource '%s': %s",
-                    resource, TextFormat.shortDebugString(builder.build())));
-        }
     }
 
     /**
@@ -580,44 +430,6 @@ public class ResourceUtils {
                         resourceName, TextFormat.shortDebugString(executorBuilder)));
     }
 
-    /**
-     * This method gets the existing {@link Resource.Builder} on the {@link TaskInfo.Builder} that has the same name as
-     * the supplied resource. That resource serves as a default value if no such builder exists on the task builder, and
-     * the return value in this case will be a resource builder created from that resource but attached to the task
-     * builder.
-     * @param taskBuilder the task builder to get the resource builder from
-     * @param defaultResource the resource to get the name from, or to use if no such builder exists on the task
-     * @return a resource builder attached to the task builder
-     */
-    public static Resource.Builder getResourceBuilder(TaskInfo.Builder taskBuilder, Resource defaultResource) {
-        for (Resource.Builder r : taskBuilder.getResourcesBuilderList()) {
-            if (r.getName().equals(defaultResource.getName())) {
-                return r;
-            }
-        }
-
-        return taskBuilder.addResourcesBuilder().mergeFrom(defaultResource);
-    }
-
-    /**
-     * This method gets the existing {@link Resource.Builder} on the {@link ExecutorInfo.Builder} that has the same name
-     * as the supplied resource. That resource serves as a default value if no such builder exists on the executor
-     * builder, and the return value in this case will be a resource builder created from that resource but attached to
-     * the executor builder.
-     * @param executorBuilder the executor builder to get the resource builder from
-     * @param resource the resource to get the name from or to use as template if no such builder exists on the executor
-     * @return a resource builder attached to the executor builder
-     */
-    public static Resource.Builder getResourceBuilder(ExecutorInfo.Builder executorBuilder, Resource resource) {
-        for (Resource.Builder r : executorBuilder.getResourcesBuilderList()) {
-            if (r.getName().equals(resource.getName())) {
-                return r;
-            }
-        }
-
-        return executorBuilder.addResourcesBuilder().mergeFrom(resource);
-    }
-
     public static Resource mergeRanges(Resource lhs, Resource rhs) {
         return lhs.toBuilder().setRanges(
                 RangeAlgorithms.fromRangeList(RangeAlgorithms.mergeRanges(
@@ -632,141 +444,30 @@ public class ResourceUtils {
 
     private static List<Resource> clearResourceIds(List<Resource> resources) {
         List<Resource> clearedResources = new ArrayList<>();
-
         for (Resource resource : resources) {
-            clearedResources.add(clearResourceId(resource));
+            clearedResources.add(new SchedulerResourceLabelWriter(resource).clearResourceId().toProto());
         }
-
         return clearedResources;
     }
 
-    public static Resource clearResourceId(Resource resource) {
-        if (resource.hasReservation()) {
-            List<Label> labels = resource.getReservation().getLabels().getLabelsList();
-
-            Resource.Builder resourceBuilder = Resource.newBuilder(resource);
-            Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
-                    .newBuilder(resource.getReservation());
-
-            Labels.Builder labelsBuilder = Labels.newBuilder();
-            for (Label label : labels) {
-                if (!label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                    labelsBuilder.addLabels(label);
-                }
-            }
-
-            reservationBuilder.setLabels(labelsBuilder.build());
-            resourceBuilder.setReservation(reservationBuilder.build());
-            return resourceBuilder.build();
-        } else {
-            return resource;
-        }
-    }
-
-    private static Resource setResource(Resource.Builder resBuilder, String name, Value value) {
-        Value.Type type = value.getType();
-
-        resBuilder
-                .setName(name)
-                .setType(type);
-
-        switch (type) {
-            case SCALAR:
-                return resBuilder.setScalar(value.getScalar()).build();
-            case RANGES:
-                return resBuilder.setRanges(value.getRanges()).build();
-            case SET:
-                return resBuilder.setSet(value.getSet()).build();
-            default:
-                return null;
-        }
-    }
-
-    private static ReservationInfo setResourceId(ReservationInfo resInfo, String resourceId) {
-        return ReservationInfo.newBuilder(resInfo)
-                .setLabels(setResourceId(resInfo.getLabels(), resourceId))
-                .build();
-    }
-
-    public static Labels setResourceId(Labels labels, String resourceId) {
-        Labels.Builder labelsBuilder = Labels.newBuilder();
-
-        // Copy everything except blank resource ID label
-        for (Label label : labels.getLabelsList()) {
-            String key = label.getKey();
-            String value = label.getValue();
-            if (!key.equals(MesosResource.RESOURCE_ID_KEY)) {
-                labelsBuilder.addLabels(Label.newBuilder()
-                        .setKey(key)
-                        .setValue(value)
-                        .build());
-            }
-        }
-
-        labelsBuilder.addLabels(Label.newBuilder()
-                .setKey(MesosResource.RESOURCE_ID_KEY)
-                .setValue(resourceId)
-                .build());
-
-        return labelsBuilder.build();
-    }
-
-    private static ReservationInfo getDesiredReservationInfo(String principal) {
-        return getDesiredReservationInfo(principal, "");
-    }
-
-    private static ReservationInfo getDesiredReservationInfo(String principal, String reservationId) {
-        return ReservationInfo.newBuilder()
-                .setPrincipal(principal)
-                .setLabels(getDesiredReservationLabels(reservationId))
-                .build();
-    }
-
-    private static ReservationInfo getExpectedReservationInfo(String resourceId, String principal) {
-        return ReservationInfo.newBuilder()
-                .setPrincipal(principal)
-                .setLabels(Labels.newBuilder()
-                        .addLabels(Label.newBuilder()
-                                .setKey(MesosResource.RESOURCE_ID_KEY)
-                                .setValue(resourceId)
-                                .build())
-                        .build())
-                .build();
-    }
-
-    private static Labels getDesiredReservationLabels(String resourceId) {
-        return Labels.newBuilder()
-                .addLabels(
-                        Label.newBuilder()
-                                .setKey(MesosResource.RESOURCE_ID_KEY)
-                                .setValue(resourceId)
-                                .build())
-                .build();
-    }
-
-    private static DiskInfo getUnreservedMountVolumeDiskInfo(String mountRoot) {
-        return DiskInfo.newBuilder()
-                .setSource(Source.newBuilder()
-                        .setType(Source.Type.MOUNT)
-                        .setMount(Source.Mount.newBuilder()
-                                .setRoot(mountRoot)
-                                .build())
-                        .build())
-                .build();
+    public static DiskInfo getUnreservedMountVolumeDiskInfo(String mountRoot) {
+        DiskInfo.Builder diskBuilder = DiskInfo.newBuilder();
+        diskBuilder.getSourceBuilder()
+                .setType(DiskInfo.Source.Type.MOUNT)
+                .getMountBuilder().setRoot(mountRoot);
+        return diskBuilder.build();
     }
 
     private static DiskInfo getDesiredMountVolumeDiskInfo(String principal, String containerPath) {
-        return DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId("")
-                        .setPrincipal(principal)
-                        .build())
-                .setSource(getDesiredMountVolumeSource())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
+        DiskInfo.Builder diskBuilder = DiskInfo.newBuilder()
+                .setSource(getDesiredMountVolumeSource());
+        diskBuilder.getPersistenceBuilder()
+                .setId("")
+                .setPrincipal(principal);
+        diskBuilder.getVolumeBuilder()
+                .setContainerPath(containerPath)
+                .setMode(Volume.Mode.RW);
+        return diskBuilder.build();
     }
 
     private static DiskInfo getExpectedMountVolumeDiskInfo(
@@ -774,66 +475,32 @@ public class ResourceUtils {
             String containerPath,
             String persistenceId,
             String principal) {
-        return DiskInfo.newBuilder(getUnreservedMountVolumeDiskInfo(mountRoot))
-                .setPersistence(Persistence.newBuilder()
-                        .setId(persistenceId)
-                        .setPrincipal(principal)
-                        .build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
-    }
-
-    private static DiskInfo getDesiredRootVolumeDiskInfo(String principal, String containerPath) {
-        return DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId("")
-                        .setPrincipal(principal)
-                        .build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
+        DiskInfo.Builder diskBuilder = DiskInfo.newBuilder(getUnreservedMountVolumeDiskInfo(mountRoot));
+        diskBuilder.getPersistenceBuilder()
+                .setId(persistenceId)
+                .setPrincipal(principal);
+        diskBuilder.getVolumeBuilder()
+                .setContainerPath(containerPath)
+                .setMode(Volume.Mode.RW);
+        return diskBuilder.build();
     }
 
     private static DiskInfo getExpectedRootVolumeDiskInfo(
             String persistenceId,
             String containerPath,
             String principal) {
-        return DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId(persistenceId)
-                        .setPrincipal(principal)
-                        .build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
+        DiskInfo.Builder diskBuilder = DiskInfo.newBuilder();
+        diskBuilder.getPersistenceBuilder()
+                .setId(persistenceId)
+                .setPrincipal(principal);
+        diskBuilder.getVolumeBuilder()
+                .setContainerPath(containerPath)
+                .setMode(Volume.Mode.RW);
+        return diskBuilder.build();
     }
 
     private static DiskInfo.Source getDesiredMountVolumeSource() {
-        return Source.newBuilder().setType(Source.Type.MOUNT).build();
-    }
-
-    public static Resource setLabel(Resource resource, String key, String value) {
-        Resource.Builder builder = resource.toBuilder();
-        builder.getReservationBuilder().getLabelsBuilder().addLabelsBuilder().setKey(key).setValue(value);
-
-        return builder.build();
-    }
-
-    public static String getLabel(Resource resource, String key) {
-        for (Label l : resource.getReservation().getLabels().getLabelsList()) {
-            if (l.getKey().equals(key)) {
-                return l.getValue();
-            }
-        }
-
-        return null;
+        return DiskInfo.Source.newBuilder().setType(DiskInfo.Source.Type.MOUNT).build();
     }
 
     public static Resource removeLabel(Resource resource, String key) {
@@ -846,5 +513,17 @@ public class ResourceUtils {
         }
 
         return builder.build();
+    }
+
+    private static Value getRanges(Collection<Range> ranges) {
+        Value.Builder valueBuilder = Value.newBuilder().setType(Value.Type.RANGES);
+        valueBuilder.getRangesBuilder().addAllRange(ranges);
+        return valueBuilder.build();
+    }
+
+    private static Value getScalar(double value) {
+        Value.Builder valueBuilder = Value.newBuilder().setType(Value.Type.SCALAR);
+        valueBuilder.getScalarBuilder().setValue(value);
+        return valueBuilder.build();
     }
 }

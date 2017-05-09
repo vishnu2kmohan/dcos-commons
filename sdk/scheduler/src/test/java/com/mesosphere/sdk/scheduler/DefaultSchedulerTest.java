@@ -6,12 +6,12 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -390,10 +390,12 @@ public class DefaultSchedulerTest {
 
         // Make offers sufficient to recover Task A-0 and launch Task B-0,
         // and also have some unused reserved resources for cleaning, and verify that only one of those three happens.
-        Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        cpus = ResourceUtils.setResourceId(cpus, UUID.randomUUID().toString());
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        mem = ResourceUtils.setResourceId(mem, UUID.randomUUID().toString());
+        Protos.Resource cpus = new SchedulerResourceLabelWriter(ResourceTestUtils.getDesiredCpu(1.0))
+                .setResourceId(UUID.randomUUID().toString())
+                .toProto();
+        Protos.Resource mem = new SchedulerResourceLabelWriter(ResourceTestUtils.getDesiredMem(1.0))
+                .setResourceId(UUID.randomUUID().toString())
+                .toProto();
 
         Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
                 .addAllResources(operations.stream()

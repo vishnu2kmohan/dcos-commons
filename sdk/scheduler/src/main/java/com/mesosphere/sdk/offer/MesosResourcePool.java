@@ -129,7 +129,7 @@ public class MesosResourcePool {
     private void releaseAtomicResource(MesosResource mesosResource) {
         Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
         resBuilder.clearReservation();
-        resBuilder.setRole("*");
+        resBuilder.setRole(Constants.ANY_ROLE);
 
         if (resBuilder.hasDisk()) {
             DiskInfo.Builder diskBuilder = DiskInfo.newBuilder(resBuilder.getDisk());
@@ -230,7 +230,8 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
-            Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
+            Resource resource = ResourceUtils.getUnreservedResource(
+                    resourceRequirement.getName(), desiredValue, Constants.ANY_ROLE).build();
             return Optional.of(new MesosResource(resource));
         } else {
             if (availableValue == null) {
