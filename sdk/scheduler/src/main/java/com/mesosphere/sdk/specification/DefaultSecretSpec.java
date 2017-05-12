@@ -62,7 +62,7 @@ public class DefaultSecretSpec implements SecretSpec {
     @JsonProperty("file")
     @Override
     public Optional<String> getFilePath() {
-            return Optional.of(filePath);
+            return Optional.ofNullable(filePath);
     }
 
     @Override
