@@ -27,4 +27,8 @@ $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/$CLI_EXE_NAME linux
 echo "Building Python CLI wrapper (DC/OS 1.7 / universe-2.x compatibility)"
 cd $TOOLS_DIR/pythoncli
 rm -rf dist/ binaries/
+virtualenv -p python3 py3virt
+source ./py3virt/bin/activate
 EXE_BUILD_DIR=$CLI_DIR/$CLI_EXE_NAME/ python setup.py -q bdist_wheel
+deactivate
+rm -rf ./py3virt
