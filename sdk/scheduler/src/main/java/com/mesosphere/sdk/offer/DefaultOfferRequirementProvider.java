@@ -295,6 +295,36 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
+        //Task level Secrets 
+        Protos.Volume secretVolume =Protos.Volume.newBuilder()
+                .setSource(Protos.Volume.Source.newBuilder()
+                        .setType(Protos.Volume.Source.Type.SECRET)
+                        .setSecret(getReferenceSecret(taskSpec.getName() + "-secret"))
+                        .build())
+                .setContainerPath(taskSpec.getName() + "-FILE")
+                .setMode(Protos.Volume.Mode.RO)
+                .build();
+
+        taskInfoBuilder.getCommandBuilder().getEnvironmentBuilder()
+                .addVariables(Protos.Environment.Variable.newBuilder()
+                    .setName(taskSpec.getName() + "_SECRET_ENV")
+                    .setType(Protos.Environment.Variable.Type.SECRET)
+                    .setSecret(getReferenceSecret(taskSpec.getName() + "-secret"))
+                    .build());
+
+        if (!taskInfoBuilder.hasContainer()) {
+            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder()
+                    .setType(Protos.ContainerInfo.Type.MESOS)
+                    .addVolumes(secretVolume)
+                    .build());
+        }
+        else {
+            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder()
+                    .addVolumes(secretVolume)
+                    .build());
+        }
+        //Task level Secrets
+
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
@@ -350,7 +380,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             setBootstrapConfigFileEnv(commandBuilder, taskSpec);
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
-            //commandBuilder.setEnvironment(commandBuilder.getEnvironmentBuilder()
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
