@@ -4,7 +4,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -21,7 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * A default implementation of the OfferRequirementProvider interface.
+ * A default implementation of the {@link OfferRequirementProvider} interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
@@ -187,7 +186,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 }
                 if (dynamicPortValues.isEmpty()) {
                     // Fallback: extract preexisting dynamic port values from task env:
-                    // TODO(nickbp): Remove this fallback on or after July 2017
+                    // TODO(nickbp): Remove this fallback on or after August 2017
                     dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValuesFromEnv(
                             taskSpec, taskInfoOptional.get().getCommand().getEnvironment());
                 }
@@ -378,9 +377,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             // Readiness check is packed as a task label:
             labelWriter.setReadinessCheck(
                     toHealthCheck(taskSpec.getReadinessCheck().get(), envWriter.getHealthCheckEnv()));
-        }
-        for (Map.Entry<String, Integer> entry : dynamicPortValues.entrySet()) {
-            labelWriter.setPort(entry.getKey(), entry.getValue());
         }
         taskInfoBuilder.setLabels(labelWriter.toProto());
 

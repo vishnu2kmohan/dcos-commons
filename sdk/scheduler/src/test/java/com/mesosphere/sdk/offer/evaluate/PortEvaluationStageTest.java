@@ -190,7 +190,7 @@ public class PortEvaluationStageTest {
         DefaultOfferRequirementProvider provider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build());
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 10000, 10000);
@@ -240,7 +240,7 @@ public class PortEvaluationStageTest {
         DefaultOfferRequirementProvider provider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build());
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 10000, 10000);

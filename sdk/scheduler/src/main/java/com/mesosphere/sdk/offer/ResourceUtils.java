@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.specification.ResourceSpec;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value.Range;
@@ -88,7 +87,7 @@ public class ResourceUtils {
         }
     }
 
-    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpec resourceSpec)
+    public static Resource updateResource(Resource resource, ResourceSpec resourceSpec)
             throws IllegalArgumentException {
         return withValue(resource.toBuilder(), resourceSpec.getValue()).build();
     }
@@ -317,25 +316,25 @@ public class ResourceUtils {
     }
 
     public static TaskInfo clearPersistence(TaskInfo taskInfo) {
-        List<Protos.Resource> resources = new ArrayList<>();
-        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+        List<Resource> resources = new ArrayList<>();
+        for (Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
-                resource = Protos.Resource.newBuilder(resource)
+                resource = Resource.newBuilder(resource)
                         .setDisk(resource.getDisk().toBuilder()
                                 .setPersistence(DiskInfo.Persistence.newBuilder().setId(""))
                 ).build();
             }
             resources.add(resource);
         }
-        return Protos.TaskInfo.newBuilder(taskInfo).clearResources().addAllResources(resources).build();
+        return TaskInfo.newBuilder(taskInfo).clearResources().addAllResources(resources).build();
     }
 
     public static boolean areDifferent(
             ResourceSpec oldResourceSpec,
             ResourceSpec newResourceSpec) {
 
-        Protos.Value oldValue = oldResourceSpec.getValue();
-        Protos.Value newValue = newResourceSpec.getValue();
+        Value oldValue = oldResourceSpec.getValue();
+        Value newValue = newResourceSpec.getValue();
         if (!ValueUtils.equal(oldValue, newValue)) {
             LOGGER.info(String.format("Values '%s' and '%s' are different.", oldValue, newValue));
             return true;
@@ -428,6 +427,22 @@ public class ResourceUtils {
                 String.format(
                         "Task has no resource with name '%s': %s",
                         resourceName, TextFormat.shortDebugString(executorBuilder)));
+    }
+
+    /**
+     * Returns a list of all the resources associated with a task, including {@link Executor} resources.
+     *
+     * @param taskInfo The {@link Protos.TaskInfo} containing the {@link Protos.Resource}
+     * @return a list of {@link Protos.Resource}s
+     */
+    public static List<Resource> getAllResources(TaskInfo taskInfo) {
+        List<Resource> resources = new ArrayList<>();
+        // Get all resources from both the task level and the executor level
+        resources.addAll(taskInfo.getResourcesList());
+        if (taskInfo.hasExecutor()) {
+            resources.addAll(taskInfo.getExecutor().getResourcesList());
+        }
+        return resources;
     }
 
     public static Resource mergeRanges(Resource lhs, Resource rhs) {

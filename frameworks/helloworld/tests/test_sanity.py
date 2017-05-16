@@ -165,8 +165,9 @@ def test_state_properties_get():
 
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == 1
+    assert len(jsonobj) == 2
     assert jsonobj[0] == "suppressed"
+    assert jsonobj[1] == "last-completed-update-type"
 
     stdout = cmd.run_cli('hello-world state property suppressed')
     assert stdout == "true\n"
@@ -256,4 +257,4 @@ def test_lock():
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)

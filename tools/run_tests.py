@@ -30,12 +30,7 @@ class CITester(object):
 
     def _configure_cli_sandbox(self):
         if not self._sandbox_path:
-            preexisting_testtmp = os.environ.get('TESTRUN_TEMPDIR')
-            if preexisting_testtmp:
-                self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-',
-                        dir=preexisting_testtmp)
-            else:
-                self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
+            self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
         # ask for unbuffered stdout, since test output randomly uses stdout
         # vs stderr
@@ -57,10 +52,6 @@ class CITester(object):
     def _download_cli_to_sandbox(self):
         # TODO: provide non-env interface to copy a dcos cli
         local_path = os.environ.get('DCOS_CLI_PATH')
-        if not local_path:
-            src_tmpdir = os.environ.get('TESTRUN_TEMPDIR')
-            if src_tmpdir:
-                return cli_install.install_cli_from_dir(src_tmpdir, self._sandbox_path)
         if local_path:
             cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
@@ -127,6 +118,8 @@ class CITester(object):
             requirements_file = open(requirements_txt, 'w')
             requirements_file.write('''
 requests==2.10.0
+dcoscli==0.4.16
+dcos==0.4.16
 
 -e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
 ''')
@@ -142,10 +135,15 @@ requests==2.10.0
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
 virtualenv -p $(which python3) --always-copy {venv_path}
+echo ls -l {venv_path}/bin/pip
+ls -l {venv_path}/bin/pip
+echo head {venv_path}/bin/pip
+head {venv_path}/bin/pip
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
-pip install -r {reqs_file}
+echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
+{venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
@@ -277,9 +275,10 @@ def main(argv):
         else:
             raise Exception('Unsupported test type: {}'.format(test_type))
 
-    finally:
-        if not 'KEEP_SANDBOX' in os.environ:
-            tester.delete_sandbox()
+        tester.delete_sandbox()
+    except:
+        tester.delete_sandbox()
+        raise
     return 0
 
 
