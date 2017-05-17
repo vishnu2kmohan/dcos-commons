@@ -471,7 +471,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", 0.01))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", 32))
-                .addResources(ResourceUtils.getDesiredScalar(role, principal, "disk", 5000))
+                //.addResources(ResourceUtils.getDesiredScalar(role, principal, "disk", 5000))
+                .addResources(ResourceUtils.getDesiredRootVolume(role, principal, 2000, "executor-volume"))
                 .build();
     }
 

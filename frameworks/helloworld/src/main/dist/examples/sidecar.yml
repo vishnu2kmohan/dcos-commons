@@ -16,17 +16,17 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo $TASK_NAME >> executor-volume/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
           SLEEP_DURATION: 1000
       once:
         goal: FINISHED
-        cmd: "echo 'I run only once' >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo 'I run only once' >> executor-volume/output && sleep $SLEEP_DURATION"
         resource-set: sidecar-resources
       sidecar:
         goal: FINISHED
-        cmd: "echo 'sidecar' >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo 'sidecar' >> executor-volume/output && sleep $SLEEP_DURATION"
         resource-set: sidecar-resources
 plans:
   deploy:

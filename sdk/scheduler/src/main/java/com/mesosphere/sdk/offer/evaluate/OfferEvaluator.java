@@ -146,7 +146,13 @@ public class OfferEvaluator {
             List<Resource> resources = executorRequirement.getResourceRequirements().stream()
                     .map(resourceRequirement -> resourceRequirement.getResource())
                     .collect(Collectors.toList());
-            resources.forEach(resource -> evaluationPipeline.add(new ResourceEvaluationStage(resource)));
+            resources.forEach(resource -> {
+                if (resource.getName() == "disk" && resource.hasDisk() && resource.getDisk().hasPersistence()) {
+                    evaluationPipeline.add(new VolumeEvaluationStage(resource));
+                } else {
+                    evaluationPipeline.add(new ResourceEvaluationStage(resource));
+                }
+            });
         }
 
         // Executor ID
