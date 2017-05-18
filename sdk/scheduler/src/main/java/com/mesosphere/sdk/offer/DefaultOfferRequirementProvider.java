@@ -154,6 +154,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setSlaveId(CommonTaskUtils.emptyAgentId())
                 .addAllResources(resources);
 
+        Protos.ExecutorInfo executorInfo = getNewExecutorInfo(
+                "hello-world-role",
+                "hello-world-principal",
+                Protos.FrameworkID.newBuilder().setValue("framework-id").build());
+
         // create default labels:
         CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
         TaskUtils.setGoalState(taskInfoBuilder, taskSpec);
@@ -170,6 +175,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+
+        taskInfoBuilder.setContainer(getContainerInfo(executorInfo));
 
         return taskInfoBuilder.build();
     }
@@ -425,20 +432,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 stateStore.fetchFrameworkId().get());
     }
 
-    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
+    private static Protos.ContainerInfo getContainerInfo(Protos.ExecutorInfo executor) {
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (containerSpec.getImageName().isPresent()) {
-            containerInfo.getMesosBuilder()
-                    .setImage(Protos.Image.newBuilder()
-                            .setType(Protos.Image.Type.DOCKER)
-                            .setDocker(Protos.Image.Docker.newBuilder()
-                                    .setName(containerSpec.getImageName().get())));
-        }
-
-        if (!containerSpec.getRLimits().isEmpty()) {
-            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
+        for (Protos.Resource r : executor.getResourcesList()) {
+            if (r.getName().equals("disk")) {
+                String containerPath = r.getDisk().getVolume().getContainerPath();
+                containerInfo.addVolumesBuilder()
+                        .setContainerPath(containerPath)
+                        .setMode(Protos.Volume.Mode.RW)
+                        .setSource(Protos.Volume.Source.newBuilder()
+                                .setSandboxPath(Protos.Volume.Source.SandboxPath.newBuilder()
+                                        .setPath(containerPath)
+                                        .setType(Protos.Volume.Source.SandboxPath.Type.PARENT))
+                                .setType(Protos.Volume.Source.Type.SANDBOX_PATH));
+            }
         }
 
         return containerInfo.build();
