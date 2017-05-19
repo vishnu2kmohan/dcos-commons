@@ -21,10 +21,11 @@
 			"revisionTime": "2015-10-22T06:55:26Z"
 		},
 		{
-			"checksumSHA1": "P3iWutRP+oVM/JerQG8PXutteDA=",
+			"checksumSHA1": "HXAz1nd22eee6/n5idplzX3Rqec=",
 			"path": "github.com/mesosphere/dcos-commons/cli",
-			"revision": "1d0caf841e5ffa966f102842af69c81200433c29",
-			"revisionTime": "2017-05-03T20:33:53Z"
+			"revision": "981ec159cf552eee0e306579be0c4d891ab84e08",
+			"revisionTime": "2017-05-19T21:25:23Z",
+			"tree": true
 		},
 		{
 			"checksumSHA1": "ZvPW/nSYs/UeoZejaV2ZSm9+2Do=",
