@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mesosphere/dcos-commons/client"
+	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
