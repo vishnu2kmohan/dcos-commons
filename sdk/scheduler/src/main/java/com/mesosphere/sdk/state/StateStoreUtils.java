@@ -99,7 +99,7 @@ public class StateStoreUtils {
 
         List<TaskInfo> results = new ArrayList<>();
         for (TaskInfo info : allInfos) {
-            String taskPod = null;
+            String taskPod;
             try {
                 taskPod = new SchedulerLabelReader(info).getType();
             } catch (TaskException e) {
@@ -185,10 +185,10 @@ public class StateStoreUtils {
     }
 
     /**
-     * Sets an 'uninstall' property in the provided {@link StateStore} to the provided value.
+     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
      */
-    public static void setUninstalling(StateStore stateStore, boolean isUninstalling) {
-        setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, isUninstalling);
+    public static void setUninstalling(StateStore stateStore) {
+        setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
     }
 
     private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {

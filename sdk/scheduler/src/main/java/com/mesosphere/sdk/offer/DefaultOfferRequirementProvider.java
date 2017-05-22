@@ -414,27 +414,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.Resource getVolumeResource(VolumeSpec volumeSpec) {
-        Protos.Resource volume = null;
-        switch (volumeSpec.getType()) {
-            case ROOT:
-                volume = ResourceUtils.getDesiredRootVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            case MOUNT:
-                volume = ResourceUtils.getDesiredMountVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            default:
-                LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
-        }
-
-        return volume;
+        return volumeSpec.getResourceRequirement(null).getResource();
     }
 
     private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {

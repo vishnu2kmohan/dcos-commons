@@ -6,7 +6,7 @@ import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceCollectUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
 import com.mesosphere.sdk.offer.VolumeRequirement;
@@ -19,7 +19,6 @@ import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
@@ -46,9 +45,9 @@ public class OfferRequirementTestUtils {
         TaskRequirement taskRequirement = new TaskRequirement(
                 TaskTestUtils.getTaskInfo(Arrays.asList(resource)), getResourceRequirements(Arrays.asList(resource)));
         ExecutorRequirement executorRequirement = ExecutorRequirement.create(
-                new SchedulerResourceLabelReader(executorResource).getResourceId().isPresent()
-                        ? TaskTestUtils.getExistingExecutorInfo(executorResource)
-                        : TaskTestUtils.getExecutorInfo(executorResource),
+                ResourceCollectUtils.getResourceId(executorResource).orElse("").isEmpty()
+                        ? TaskTestUtils.getExecutorInfo(executorResource)
+                        : TaskTestUtils.getExistingExecutorInfo(executorResource),
                 getResourceRequirements(Arrays.asList(executorResource)));
 
         return new OfferRequirement(
@@ -135,7 +134,7 @@ public class OfferRequirementTestUtils {
                                 port,
                                 Optional.of(getIndexedName(TestConstants.PORT_ENV_NAME, numPorts))));
                     } else {
-                        resource = ResourceUtils.removeLabel(resource, TestConstants.HAS_VIP_LABEL);
+                        resource = ResourceTestUtils.removeLabel(resource, TestConstants.HAS_VIP_LABEL);
                         portRequirements.add(new NamedVIPRequirement(
                                 resource,
                                 "port-name-" + numPorts,
@@ -154,7 +153,7 @@ public class OfferRequirementTestUtils {
                     if (containerPath != null) {
                         Protos.Resource.Builder builder = resource.toBuilder();
                         builder.getDiskBuilder().getVolumeBuilder().setContainerPath(containerPath);
-                        resource = ResourceUtils.removeLabel(builder.build(), TestConstants.CONTAINER_PATH_LABEL);
+                        resource = ResourceTestUtils.removeLabel(builder.build(), TestConstants.CONTAINER_PATH_LABEL);
                     }
                     resourceRequirements.add(new VolumeRequirement(resource));
                     break;

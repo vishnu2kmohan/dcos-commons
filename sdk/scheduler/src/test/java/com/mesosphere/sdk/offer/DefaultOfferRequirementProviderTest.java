@@ -125,7 +125,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals("test-java-uri", uris.get(1).getValue());
         String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
                 TestConstants.SERVICE_NAME,
-                ResourceUtils.VIP_HOST_TLD,
+                Constants.VIP_HOST_TLD,
                 uuid.toString(),
                 podInstance.getPod().getType(),
                 tasksToLaunch.get(0));

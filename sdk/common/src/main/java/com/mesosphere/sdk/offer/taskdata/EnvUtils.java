@@ -21,6 +21,7 @@ public class EnvUtils {
     /**
      * Returns a Map representation of the provided {@link Environment}.
      * In the event of duplicate labels, the last duplicate wins.
+     * This is the inverse of {@link #toProto(Map)}.
      */
     public static Map<String, String> toMap(Environment environment) {
         // sort labels alphabetically for convenience in debugging/logging:
@@ -45,6 +46,26 @@ public class EnvUtils {
     }
 
     // TODO(nickbp): SCHEDULER ONLY:
+
+    /**
+     * Adds or updates the provided environment variable entry in the provided command builder.
+     */
+    private static Environment withEnvVar(Environment environment, String key, String value) {
+        Map<String, String> envMap = toMap(environment);
+        envMap.put(key, value);
+        return toProto(envMap);
+    }
+
+    /**
+     * Returns the value of the provided environment variable, or an empty {@link Optional} if no matching environment
+     * variable was found.
+     */
+    private static Optional<String> getEnvVar(Environment environment, String key) {
+        return environment.getVariablesList().stream()
+                .filter(v -> v.getName().equals(key))
+                .map(v -> v.getValue())
+                .findFirst();
+    }
 
     /**
      * Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase

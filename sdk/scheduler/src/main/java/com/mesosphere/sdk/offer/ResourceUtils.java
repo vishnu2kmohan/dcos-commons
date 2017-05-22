@@ -445,18 +445,6 @@ public class ResourceUtils {
         return resources;
     }
 
-    public static Resource mergeRanges(Resource lhs, Resource rhs) {
-        return lhs.toBuilder().setRanges(
-                RangeAlgorithms.fromRangeList(RangeAlgorithms.mergeRanges(
-                        lhs.getRanges().getRangeList(), rhs.getRanges().getRangeList()))).build();
-    }
-
-    public static Resource mergeRanges(Resource.Builder builder, Resource resource) {
-        return builder.setRanges(
-                RangeAlgorithms.fromRangeList(RangeAlgorithms.mergeRanges(
-                        builder.getRanges().getRangeList(), resource.getRanges().getRangeList()))).build();
-    }
-
     private static List<Resource> clearResourceIds(List<Resource> resources) {
         List<Resource> clearedResources = new ArrayList<>();
         for (Resource resource : resources) {

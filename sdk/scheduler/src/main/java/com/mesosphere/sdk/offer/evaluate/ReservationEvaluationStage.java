@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +38,9 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
                         TextFormat.shortDebugString(entry.getValue().getResource()));
                 recommendations.add(new UnreserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
-                        new SchedulerResourceLabelWriter(entry.getValue().getResource())
+                        ResourceBuilder.fromExistingResource(entry.getValue().getResource())
                                 .setResourceId(entry.getKey())
-                                .toProto()));
+                                .build()));
             }
         }
         return pass(this, "Added reservation information to offer requirement")

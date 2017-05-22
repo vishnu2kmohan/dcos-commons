@@ -8,8 +8,6 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value;
 
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
-
 /**
  * Wrapper around a Mesos {@link Resource}, combined with a resource ID string which should be present in the
  * {@link Resource} as a {@link Label}.
@@ -41,7 +39,7 @@ public class MesosResource {
     }
 
     public Optional<String> getResourceId() {
-        return new SchedulerResourceLabelReader(resource).getResourceId();
+        return ResourceCollectUtils.getResourceId(resource);
     }
 
     public boolean hasReservation() {
@@ -56,12 +54,10 @@ public class MesosResource {
         return resource.getRole();
     }
 
-    public String getPrincipal() {
-        if (resource.hasReservation() && resource.getReservation().hasPrincipal()) {
-            return resource.getReservation().getPrincipal();
-        }
-
-        return null;
+    public Optional<String> getPrincipal() {
+        return resource.hasReservation() && resource.getReservation().hasPrincipal()
+                ? Optional.of(resource.getReservation().getPrincipal())
+                : Optional.empty();
     }
 
     @Override

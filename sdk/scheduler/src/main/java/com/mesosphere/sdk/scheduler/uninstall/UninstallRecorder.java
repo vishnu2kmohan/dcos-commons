@@ -1,11 +1,13 @@
-package com.mesosphere.sdk.state;
+package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.ResourceCollectUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,7 @@ public class UninstallRecorder implements OperationRecorder {
     private final StateStore stateStore;
     private final Phase resourcePhase;
 
-    public UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
+    UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
         this.stateStore = stateStore;
         this.resourcePhase = resourcePhase;
     }
@@ -38,8 +40,8 @@ public class UninstallRecorder implements OperationRecorder {
     }
 
     private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
-        return new SchedulerResourceLabelReader(resource).getResourceId().equals(
-                new SchedulerResourceLabelReader(taskInfoResource).getResourceId());
+        return ResourceCollectUtils.getResourceId(resource)
+                .equals(ResourceCollectUtils.getResourceId(taskInfoResource));
     }
 
     @Override
@@ -67,32 +69,37 @@ public class UninstallRecorder implements OperationRecorder {
         }
     }
 
-    private Collection<Protos.TaskInfo> updateResources(Protos.Resource resource,
-                                                        List<Protos.TaskInfo> tasksToUpdate) {
+    private Collection<Protos.TaskInfo> updateResources(
+            Protos.Resource resource, List<Protos.TaskInfo> tasksToUpdate) {
         // create new copies of taskinfos with updated resources
-        Optional<String> initialResourceId = new SchedulerResourceLabelReader(resource).getResourceId();
+        Optional<String> initialResourceId = ResourceCollectUtils.getResourceId(resource);
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
+        if (!initialResourceId.isPresent()) {
+            return updatedTaskInfos;
+        }
         for (Protos.TaskInfo taskInfoToUpdate : tasksToUpdate) {
-            Collection<Protos.Resource> updatedResources = updatedResources(initialResourceId,
-                    taskInfoToUpdate.getResourcesList());
-            Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate).clearResources()
-                    .addAllResources(updatedResources).build();
+            Collection<Protos.Resource> updatedResources =
+                    updatedResources(initialResourceId.get(), taskInfoToUpdate.getResourcesList());
+            Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate)
+                    .clearResources()
+                    .addAllResources(updatedResources)
+                    .build();
             updatedTaskInfos.add(taskInfo);
         }
         return updatedTaskInfos;
     }
 
-    private Collection<Protos.Resource> updatedResources(Optional<String> initialResourceId,
-                                                         List<Protos.Resource> resourcesList) {
+    private Collection<Protos.Resource> updatedResources(
+            String initialResourceId, List<Protos.Resource> resourcesList) {
         // find the matching resource in each task and update its resource_id
         String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
         List<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource resource : resourcesList) {
-            if (initialResourceId.equals(new SchedulerResourceLabelReader(resource).getResourceId())) {
-                updatedResources.add(
-                        new SchedulerResourceLabelWriter(resource)
-                                .setResourceId(uninstalledResourceId)
-                                .toProto());
+            Optional<String> thisResourceId = ResourceCollectUtils.getResourceId(resource);
+            if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
+                updatedResources.add(ResourceBuilder.fromExistingResource(resource)
+                        .setResourceId(uninstalledResourceId)
+                        .build());
             } else {
                 updatedResources.add(resource);
             }

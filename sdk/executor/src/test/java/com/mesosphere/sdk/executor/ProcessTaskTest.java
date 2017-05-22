@@ -2,6 +2,8 @@ package com.mesosphere.sdk.executor;
 
 import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;

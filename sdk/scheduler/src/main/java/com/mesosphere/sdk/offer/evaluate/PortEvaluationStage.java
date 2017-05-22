@@ -1,19 +1,25 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -90,7 +96,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
     @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
-
         if (!getTaskName().isPresent()) {
             return; // Changes are only applied to TaskInfos
         }
@@ -120,10 +125,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
     }
 
     @Override
-    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
-        Protos.Resource reservedResource = super.getFulfilledResource(resource);
+    protected Protos.Resource toFulfilledResource(Protos.Resource resource) {
+        Protos.Resource reservedResource = super.toFulfilledResource(resource);
         if (!StringUtils.isBlank(resourceId)) {
-            reservedResource = new SchedulerResourceLabelWriter(reservedResource).setResourceId(resourceId).toProto();
+            reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
+                    .setResourceId(resourceId)
+                    .build();
         }
         return reservedResource;
     }

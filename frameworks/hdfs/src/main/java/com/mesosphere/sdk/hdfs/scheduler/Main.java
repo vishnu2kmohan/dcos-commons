@@ -73,6 +73,7 @@ public class Main {
         }
 
         Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
+
         String fileStr = new String(bytes, Charset.defaultCharset());
         return TemplateUtils.applyEnvToMustache(fileStr, env);
     }

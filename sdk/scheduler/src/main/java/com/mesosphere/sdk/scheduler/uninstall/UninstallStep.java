@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceCollectUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
-import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -50,10 +50,9 @@ public class UninstallStep extends AbstractStep {
                 .filter(offerRecommendation -> offerRecommendation instanceof UninstallRecommendation)
                 .map(offerRecommendation -> (UninstallRecommendation) offerRecommendation)
                 .map(UninstallRecommendation::getResource)
-                .map(resource -> new SchedulerResourceLabelReader(resource).getResourceId())
-                .filter(resourceId -> resourceId.isPresent())
-                .map(resourceId -> resourceId.get())
-                .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId));
+                .map(ResourceCollectUtils::getResourceId)
+                .filter(uninstallResourceId -> uninstallResourceId.isPresent())
+                .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId.get()));
         if (isMatched) {
             logger.info("Completed uninstall step for resource {}", getName());
             setStatus(Status.COMPLETE);
