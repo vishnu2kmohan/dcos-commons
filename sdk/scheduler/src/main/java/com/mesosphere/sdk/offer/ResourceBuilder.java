@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.offer;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Resource;
@@ -31,6 +33,7 @@ public class ResourceBuilder {
     private final String resourceName;
     private Value value;
     private Optional<String> resourceId;
+    private Map<String, Long> ports;
 
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
@@ -48,9 +51,13 @@ public class ResourceBuilder {
         ResourceBuilder builder =
                 new ResourceBuilder(resource.getRole(), principal, resource.getName(), getValue(resource));
 
-        Optional<String> resourceId = SchedulerResourceLabelReader.getResourceId(resource);
+        SchedulerResourceLabelReader labelReader = new SchedulerResourceLabelReader(resource);
+        Optional<String> resourceId = labelReader.getResourceId();
         if (resourceId.isPresent()) {
             builder.setResourceId(resourceId.get());
+        }
+        for (Map.Entry<String, Integer> entry : labelReader.getAllPortValues().entrySet()) {
+            builder.setPort(entry.getKey(), entry.getValue());
         }
 
         if (resource.hasDisk()) {
@@ -81,6 +88,8 @@ public class ResourceBuilder {
         this.resourceName = resourceName;
         this.value = value;
         this.resourceId = Optional.empty();
+        this.ports = new TreeMap<>();
+
         this.diskContainerPath = Optional.empty();
         this.diskPersistenceId = Optional.empty();
         this.diskMountInfo = Optional.empty();
@@ -120,6 +129,17 @@ public class ResourceBuilder {
      */
     public ResourceBuilder setResourceId(String resourceId) {
         this.resourceId = Optional.of(resourceId);
+        return this;
+    }
+
+    /**
+     * Assigns a port label against this resource for the specified port resource name. This is used for the scheduler's
+     * own accounting of which dynamic ports have been allocated.
+     *
+     * TODO: ensure this is reset to a clean slate in offer evaluation and then assigned via PortEvaluationStages
+     */
+    public ResourceBuilder setPort(String portName, long portValue) {
+        this.ports.put(portName, portValue);
         return this;
     }
 
@@ -203,6 +223,9 @@ public class ResourceBuilder {
         SchedulerResourceLabelWriter labelWriter = new SchedulerResourceLabelWriter(builder);
         if (resourceId.isPresent()) {
             labelWriter.setResourceId(resourceId.get());
+        }
+        for (Map.Entry<String, Long> entry : ports.entrySet()) {
+            labelWriter.setPortValue(entry.getKey(), entry.getValue());
         }
         return labelWriter.toProto();
     }

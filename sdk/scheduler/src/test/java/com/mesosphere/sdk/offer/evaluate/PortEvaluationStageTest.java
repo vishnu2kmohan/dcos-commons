@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -26,6 +25,35 @@ public class PortEvaluationStageTest {
 
     @Test
     public void testReserveDynamicPort() throws Exception {
+        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                desiredPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.empty());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        Assert.assertEquals(1, outcome.getOfferRecommendations().size());
+
+        OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
+
+        Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
+        Assert.assertEquals(
+                10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
+
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(variable.getName(), "PORT_DYN_PORT_NAME");
+        Assert.assertEquals(variable.getValue(), "10000");
+    }
+
+    @Test
+    public void testReserveDynamicPortCustomEnv() throws Exception {
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
@@ -123,59 +151,52 @@ public class PortEvaluationStageTest {
     }
 
     @Test
-    public void testGetClaimedDynamicPort() throws Exception {
+    public void testGetClaimedDynamicPortListedInEnv() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId);
+        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
-        Protos.Resource expectedPorts = new SchedulerResourceLabelWriter(
-                ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId))
-                .setPortValue("dyn-port-name", 10001)
-                .toProto();
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
+        // Populate an envvar in the task which advertises the prior port utilization:
         Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        SchedulerEnvWriter.setPort(builder, "dyn-port-name", Optional.empty(), 10001);
+        builder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder()
+                .setName("PORT_TEST_PORT")
+                .setValue("10000");
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.empty());
+                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("port-test-port"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
         Assert.assertTrue(outcome.toString(), outcome.isPassing());
-
-        Protos.Environment taskEnv =
-                podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getCommand().getEnvironment();
-        Assert.assertEquals("PORT_DYN_PORT_NAME", taskEnv.getVariables(0).getName());
-        Assert.assertEquals("10001", taskEnv.getVariables(0).getValue());
 
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
     }
 
     @Test
-    public void testGetClaimedDynamicPortCustomEnv() throws Exception {
+    public void testGetClaimedDynamicPortListedInLabels() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Protos.Resource offeredPorts = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+
+        // Populate a label in the task resource which advertises the prior port utilization:
+        Protos.Resource offeredPorts =
+                new SchedulerResourceLabelWriter(
+                        ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId))
+                .setPortValue("dyn-port-name", 10000)
+                .toProto();
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
-        Protos.Resource expectedPorts = new SchedulerResourceLabelWriter(
-                ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId))
-                .setPortValue("dyn-port-name", 10000)
-                .toProto();
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("name-for-env"));
+                expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("port-test-port"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
         Assert.assertTrue(outcome.toString(), outcome.isPassing());
-
-        Protos.Environment taskEnv =
-                podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getCommand().getEnvironment();
-        Assert.assertEquals("NAME_FOR_ENV", taskEnv.getVariables(0).getName());
-        Assert.assertEquals("10000", taskEnv.getVariables(0).getValue());
 
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());

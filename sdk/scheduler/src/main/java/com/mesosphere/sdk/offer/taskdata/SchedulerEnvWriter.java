@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.mesos.Protos.Environment;
+import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -91,6 +92,8 @@ public class SchedulerEnvWriter {
      * <li>Environment variables in readiness check and/or health checks (if either is enabled)</li>
      * <li>Environment variables in the main task environment</li>
      * </ul>
+     *
+     * @throws TaskException in the event of an error when deserializing a readiness check
      */
     public static void setPort(
             TaskInfo.Builder taskInfoBuilder, String portName, Optional<String> customEnvKey, long port)
@@ -126,5 +129,17 @@ public class SchedulerEnvWriter {
                 CommonEnvUtils.toMap(taskInfoBuilder.getCommand().getEnvironment()));
         taskWriter.put(portEnvName, portStr);
         taskInfoBuilder.getCommandBuilder().setEnvironment(CommonEnvUtils.toProto(taskWriter.map()));
+    }
+
+    /**
+     * Updates executor environment variables to reflect a reserved port value. Unlike with the task, this doesn't
+     * affect any readiness or health checks.
+     */
+    public static void setPort(
+            ExecutorInfo.Builder executorInfoBuilder, String portName, Optional<String> customEnvKey, long port) {
+        TaskDataWriter taskWriter = new TaskDataWriter(
+                CommonEnvUtils.toMap(executorInfoBuilder.getCommand().getEnvironment()));
+        taskWriter.put(EnvUtils.getPortEnvName(portName, customEnvKey), Long.toString(port));
+        executorInfoBuilder.getCommandBuilder().setEnvironment(CommonEnvUtils.toProto(taskWriter.map()));
     }
 }
