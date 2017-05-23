@@ -57,7 +57,7 @@ public class TaskTestUtils {
                     } catch (TaskException e) {
                         throw new IllegalStateException(e);
                     }
-                    r = new SchedulerResourceLabelWriter(r).setPort("some-port", portValue).toProto();
+                    r = new SchedulerResourceLabelWriter(r).setPortValue("some-port", portValue).toProto();
 
                     if (vipAssignment != null) {
                         taskBuilder.getDiscoveryBuilder()

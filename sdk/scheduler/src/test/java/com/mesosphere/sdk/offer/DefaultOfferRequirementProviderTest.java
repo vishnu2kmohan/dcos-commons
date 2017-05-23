@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.CommonEnvUtils;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -89,9 +89,10 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
-    private void finishNewOfferTest(OfferRequirement offerRequirement, List<String> tasksToLaunch, PodInstance podInstance) throws InvalidRequirementException {
-        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
-        TaskInfo taskInfo = taskRequirement.getTaskInfo();
+    private void finishNewOfferTest(
+            OfferRequirement offerRequirement, List<String> tasksToLaunch, PodInstance podInstance)
+            throws InvalidRequirementException {
+        TaskInfo taskInfo = offerRequirement.getTaskRequirements().iterator().next().getTaskInfo();
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
 
         Assert.assertFalse(taskInfo.hasContainer());
@@ -104,7 +105,7 @@ public class DefaultOfferRequirementProviderTest {
         CommandInfo taskCommand = taskInfo.getCommand();
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
-        Map<String, String> taskEnv = EnvUtils.toMap(taskCommand.getEnvironment());
+        Map<String, String> taskEnv = CommonEnvUtils.toMap(taskCommand.getEnvironment());
         Assert.assertEquals(taskEnv.toString(), 6, taskEnv.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, taskEnv.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
@@ -267,7 +268,7 @@ public class DefaultOfferRequirementProviderTest {
 
         Assert.assertTrue(taskInfo.getCommand().getUrisList().isEmpty());
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, envvars.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
@@ -290,7 +291,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
@@ -302,7 +303,7 @@ public class DefaultOfferRequirementProviderTest {
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        envvars = CommonEnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
@@ -345,7 +346,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
         offerRequirement = provider.getExistingOfferRequirement(
@@ -356,7 +357,7 @@ public class DefaultOfferRequirementProviderTest {
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        envvars = CommonEnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
 }

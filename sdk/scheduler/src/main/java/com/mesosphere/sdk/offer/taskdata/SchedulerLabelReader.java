@@ -156,8 +156,7 @@ public class SchedulerLabelReader {
      * Returns a mapping of all assigned dynamic port values from the provided {@link TaskInfo}, using the provided
      * {@link TaskSpec} to determine the ports which are dynamic.
      */
-    public static Map<String, Integer> getAllDynamicPortValues(Collection<Resource> resources, TaskSpec taskSpec)
-            throws TaskException {
+    public static Map<String, Integer> getAllDynamicPortValues(Collection<Resource> resources, TaskSpec taskSpec) {
         Map<String, Integer> allResourcePortValues = new HashMap<>();
         for (Resource resource : resources) {
             allResourcePortValues.putAll(new SchedulerResourceLabelReader(resource).getAllPortValues());
@@ -179,7 +178,7 @@ public class SchedulerLabelReader {
      */
     @Deprecated
     public static Map<String, Integer> getAllDynamicPortValuesFromEnv(TaskSpec taskSpec, Environment environment) {
-        Map<String, String> envMap = EnvUtils.toMap(environment);
+        Map<String, String> envMap = CommonEnvUtils.toMap(environment);
 
         Map<String, Integer> dynamicPortValues = new HashMap<>();
         for (PortSpec dynamicPortSpec : getDynamicPortSpecs(taskSpec)) {

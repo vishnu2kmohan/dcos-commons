@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -129,15 +129,15 @@ public class PortEvaluationStageTest {
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
-        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+        Protos.Resource expectedPorts = new SchedulerResourceLabelWriter(
+                ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId))
+                .setPortValue("dyn-port-name", 10001)
+                .toProto();
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         SchedulerEnvWriter.setPort(builder, "dyn-port-name", Optional.empty(), 10001);
-        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(builder);
-        labelWriter.setPort("dyn-port-name", 10001);
-        builder.setLabels(labelWriter.toProto());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.empty());
@@ -160,14 +160,12 @@ public class PortEvaluationStageTest {
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
-        Protos.Resource expectedPorts = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+        Protos.Resource expectedPorts = new SchedulerResourceLabelWriter(
+                ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId))
+                .setPortValue("dyn-port-name", 10000)
+                .toProto();
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedPorts);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
-
-        Protos.TaskInfo.Builder builder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        SchedulerLabelWriter labelWriter = new SchedulerLabelWriter(builder);
-        labelWriter.setPort("dyn-port-name", 10000);
-        builder.setLabels(labelWriter.toProto());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 expectedPorts, TestConstants.TASK_NAME, "dyn-port-name", 0, Optional.of("name-for-env"));

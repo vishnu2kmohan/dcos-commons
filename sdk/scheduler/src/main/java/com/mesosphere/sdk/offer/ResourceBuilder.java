@@ -8,6 +8,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Volume;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 import com.mesosphere.sdk.specification.ResourceSpec;
 
@@ -47,7 +48,7 @@ public class ResourceBuilder {
         ResourceBuilder builder =
                 new ResourceBuilder(resource.getRole(), principal, resource.getName(), getValue(resource));
 
-        Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+        Optional<String> resourceId = SchedulerResourceLabelReader.getResourceId(resource);
         if (resourceId.isPresent()) {
             builder.setResourceId(resourceId.get());
         }

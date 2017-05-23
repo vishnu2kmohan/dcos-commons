@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.ProcessBuilderUtils;
-
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 
 import java.time.Duration;
 import java.util.concurrent.*;

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.TextFormat;
 
 /**
  * Utility methods relating to sending {@link TaskStatus} messages from the Executor back to the Scheduler.
@@ -67,9 +68,10 @@ public class TaskStatusUtils {
 
         try {
             final TaskStatus taskStatus = builder.build();
+            LOGGER.info("Sending task status update: {}", TextFormat.shortDebugString(taskStatus));
             driver.sendStatusUpdate(taskStatus);
         } catch (Throwable t) {
-            LOGGER.info("Failed to build task status.", t);
+            LOGGER.error("Failed to build task status.", t);
         }
     }
 

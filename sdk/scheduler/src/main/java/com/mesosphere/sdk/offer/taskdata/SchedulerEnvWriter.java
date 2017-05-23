@@ -41,11 +41,11 @@ public class SchedulerEnvWriter {
         // Default envvars for use by executors/developers:
 
         // Inject Pod Instance Index
-        taskAndHealthCheckEnv.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        taskAndHealthCheckEnv.put(EnvUtils.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
-        taskAndHealthCheckEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        taskAndHealthCheckEnv.put(EnvUtils.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject TASK_NAME as KEY:VALUE
-        taskAndHealthCheckEnv.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+        taskAndHealthCheckEnv.put(EnvUtils.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         taskAndHealthCheckEnv.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
@@ -57,7 +57,7 @@ public class SchedulerEnvWriter {
                 String configEnvVal =
                         String.format("%s%s,%s", configDownloadDir, configSpec.getName(), configSpec.getRelativePath());
                 taskOnlyEnv.put(
-                        EnvConstants.CONFIG_TEMPLATE_TASKENV_PREFIX + EnvUtils.toEnvName(configSpec.getName()),
+                        EnvUtils.CONFIG_TEMPLATE_TASKENV_PREFIX + EnvUtils.toEnvName(configSpec.getName()),
                         configEnvVal);
             }
         }
@@ -71,7 +71,7 @@ public class SchedulerEnvWriter {
      * Returns the environment variables to be stored against the root TaskInfo.
      */
     public Environment getTaskEnv() {
-        return EnvUtils.toProto(new TaskDataWriter()
+        return CommonEnvUtils.toProto(new TaskDataWriter()
                 .putAll(taskOnlyEnv.map())
                 .putAll(taskAndHealthCheckEnv.map())
                 .map());
@@ -82,17 +82,15 @@ public class SchedulerEnvWriter {
      * applicable.
      */
     public Environment getHealthCheckEnv() {
-        return EnvUtils.toProto(taskAndHealthCheckEnv.map());
+        return CommonEnvUtils.toProto(taskAndHealthCheckEnv.map());
     }
 
     /**
-     * Updates the task to reflect a reserved port value in the following places:
+     * Updates task environment variables to reflect a reserved port value in the following places:
      * <ul>
-     * <li>Task labelThis allows a degree of stickiness for dynamic ports, keeping
-     * them the
-     * same across (scheduler and/or task) restarts to avoid constantly re-reserving port resources.
-     *
-     * This also updates the environment of the embedded Readiness Check, if one is present.
+     * <li>Environment variables in readiness check and/or health checks (if either is enabled)</li>
+     * <li>Environment variables in the main task environment</li>
+     * </ul>
      */
     public static void setPort(
             TaskInfo.Builder taskInfoBuilder, String portName, Optional<String> customEnvKey, long port)
@@ -107,25 +105,26 @@ public class SchedulerEnvWriter {
             // Update readiness check env (embedded in label):
             HealthCheck.Builder readinessCheck = readinessCheckOptional.get().toBuilder();
             TaskDataWriter readinesscheckWriter =
-                    new TaskDataWriter(EnvUtils.toMap(readinessCheck.getCommand().getEnvironment()));
+                    new TaskDataWriter(CommonEnvUtils.toMap(readinessCheck.getCommand().getEnvironment()));
             readinesscheckWriter.put(portEnvName, portStr);
-            readinessCheck.getCommandBuilder().setEnvironment(EnvUtils.toProto(readinesscheckWriter.map()));
+            readinessCheck.getCommandBuilder().setEnvironment(CommonEnvUtils.toProto(readinesscheckWriter.map()));
             labelWriter.setReadinessCheck(readinessCheck.build());
         }
         taskInfoBuilder.setLabels(labelWriter.toProto());
 
         // 2. Update health check env, if any:
         if (taskInfoBuilder.hasHealthCheck()) {
-            TaskDataWriter healthcheckWriter =
-                    new TaskDataWriter(EnvUtils.toMap(taskInfoBuilder.getHealthCheck().getCommand().getEnvironment()));
+            TaskDataWriter healthcheckWriter = new TaskDataWriter(
+                    CommonEnvUtils.toMap(taskInfoBuilder.getHealthCheck().getCommand().getEnvironment()));
             healthcheckWriter.put(portEnvName, portStr);
             taskInfoBuilder.getHealthCheckBuilder().getCommandBuilder()
-                    .setEnvironment(EnvUtils.toProto(healthcheckWriter.map()));
+                    .setEnvironment(CommonEnvUtils.toProto(healthcheckWriter.map()));
         }
 
         // 3. Update main task env:
-        TaskDataWriter taskWriter = new TaskDataWriter(EnvUtils.toMap(taskInfoBuilder.getCommand().getEnvironment()));
+        TaskDataWriter taskWriter = new TaskDataWriter(
+                CommonEnvUtils.toMap(taskInfoBuilder.getCommand().getEnvironment()));
         taskWriter.put(portEnvName, portStr);
-        taskInfoBuilder.getCommandBuilder().setEnvironment(EnvUtils.toProto(taskWriter.map()));
+        taskInfoBuilder.getCommandBuilder().setEnvironment(CommonEnvUtils.toProto(taskWriter.map()));
     }
 }

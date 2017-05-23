@@ -47,15 +47,31 @@ public class SchedulerResourceLabelReader {
 
     /**
      * Returns a mapping of all listed port names and their values.
+     *
+     * @throws NumberFormatException if a label appears to be for a port, but the label value isn't a valid integer
      */
-    public Map<String, Integer> getAllPortValues() throws TaskException {
+    public Map<String, Integer> getAllPortValues() {
         Map<String, Integer> portValues = new HashMap<>();
         for (String key : labels.getKeys()) {
             Optional<String> portName = LabelUtils.toPortName(key);
             if (portName.isPresent()) {
-                portValues.put(portName.get(), Integer.parseInt(labels.getOrThrow(key)));
+                try {
+                    // looks like a port label, return the value
+                    portValues.put(portName.get(), Integer.parseInt(labels.getOrThrow(key)));
+                } catch (TaskException e) {
+                    // shouldn't happen in practice: we just got this key from getKeys()!
+                    throw new IllegalStateException(
+                            "Internal error: Unable to retrieve label which was listed in keys", e);
+                }
             }
         }
         return portValues;
+    }
+
+    /**
+     * Shortcut to read the resource ID for the provided resource.
+     */
+    public static Optional<String> getResourceId(Resource resource) {
+        return new SchedulerResourceLabelReader(resource).getResourceId();
     }
 }

@@ -49,14 +49,10 @@ public class ResourceCollectUtils {
      */
     public static List<String> getResourceIds(Collection<Resource> resources) {
         return resources.stream()
-                .map(ResourceCollectUtils::getResourceId)
+                .map(SchedulerResourceLabelReader::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .distinct()
                 .collect(Collectors.toList());
-    }
-
-    public static Optional<String> getResourceId(Resource resource) {
-        return new SchedulerResourceLabelReader(resource).getResourceId();
     }
 }

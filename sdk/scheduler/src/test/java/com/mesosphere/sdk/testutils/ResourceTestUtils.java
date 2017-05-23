@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos.Label;
-import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Volume;
@@ -11,8 +10,8 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value.Range;
 
-import com.mesosphere.sdk.offer.MesosResource;
-import com.mesosphere.sdk.offer.ResourceCollectUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -200,35 +199,12 @@ public class ResourceTestUtils {
                 .build();
     }
 
-    public static Resource setResourceId(Resource resource, String resourceId) {
-        Resource.Builder builder = Resource.newBuilder(resource);
-        Labels.Builder newLabels = Labels.newBuilder();
-        for (Label label : builder.getReservationBuilder().getLabels().getLabelsList()) {
-            if (!label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                newLabels.addLabels(label);
-            }
-        }
-        newLabels.addLabelsBuilder()
-                .setKey(MesosResource.RESOURCE_ID_KEY)
-                .setValue(resourceId);
-        builder.getReservationBuilder().setLabels(newLabels);
-        return builder.build();
-    }
-
-    public static String getResourceId(Resource resource) {
-        return ResourceCollectUtils.getResourceId(resource).orElse(null);
-    }
-
     private static ReservationInfo getExpectedReservationInfo(String resourceId, String principal) {
-        return ReservationInfo.newBuilder()
-                .setPrincipal(principal)
-                .setLabels(Labels.newBuilder()
-                        .addLabels(Label.newBuilder()
-                                .setKey(MesosResource.RESOURCE_ID_KEY)
-                                .setValue(resourceId)
-                                .build())
-                        .build())
-                .build();
+        Resource.Builder resourceBuilder = Resource.newBuilder()
+                .setName("required-fields")
+                .setType(Value.Type.TEXT);
+        resourceBuilder.getReservationBuilder().setPrincipal(principal);
+        return new SchedulerResourceLabelWriter(resourceBuilder).setResourceId(resourceId).toProto().getReservation();
     }
 
     private static DiskInfo getUnreservedMountVolumeDiskInfo(String mountRoot) {

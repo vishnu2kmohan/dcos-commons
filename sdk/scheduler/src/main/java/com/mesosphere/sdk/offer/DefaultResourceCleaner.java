@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -135,7 +136,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     private static Map<String, Resource> getReservedResourcesById(Offer offer) {
         Map<String, Resource> reservedResources = new HashMap<>();
         for (Resource resource : offer.getResourcesList()) {
-            Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+            Optional<String> resourceId = SchedulerResourceLabelReader.getResourceId(resource);
             if (resourceId.isPresent()) {
                 reservedResources.put(resourceId.get(), resource);
             }

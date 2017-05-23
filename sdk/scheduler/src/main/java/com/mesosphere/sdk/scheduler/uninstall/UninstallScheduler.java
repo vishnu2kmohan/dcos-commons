@@ -4,6 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.*;
@@ -84,7 +85,7 @@ public class UninstallScheduler implements Scheduler {
         // create one UninstallStep per unique Resource, including Executor resources
         List<Step> taskSteps = new ArrayList<>();
         for (Protos.Resource resource : ResourceCollectUtils.getAllResources(stateStore.fetchTasks())) {
-            Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+            Optional<String> resourceId = SchedulerResourceLabelReader.getResourceId(resource);
             if (!resourceId.isPresent()) {
                 continue;
             }

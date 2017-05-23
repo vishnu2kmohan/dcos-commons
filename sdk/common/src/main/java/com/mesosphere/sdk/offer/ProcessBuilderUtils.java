@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.CommonEnvUtils;
 
 /**
  * Utilities relating to construction of {@link ProcessBuilder}s.
@@ -20,7 +20,7 @@ public class ProcessBuilderUtils {
      * {@link Protos.CommandInfo}'s command and environment.
      */
     public static ProcessBuilder buildProcess(Protos.CommandInfo cmd) {
-        return buildProcess(cmd.getValue(), EnvUtils.toMap(cmd.getEnvironment()));
+        return buildProcess(cmd.getValue(), CommonEnvUtils.toMap(cmd.getEnvironment()));
     }
 
     /**

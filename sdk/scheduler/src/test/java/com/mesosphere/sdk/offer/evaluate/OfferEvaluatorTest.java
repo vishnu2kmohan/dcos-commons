@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.CommonEnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
-    private static final String RESOURCE_ID_KEY = "resource_id";
-
     @Mock ServiceSpec serviceSpec;
 
     @Test
@@ -53,11 +51,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(1).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -83,11 +80,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(1).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -116,11 +112,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(1).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -139,11 +134,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(1).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -169,7 +163,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -197,7 +191,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -224,7 +218,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -248,13 +242,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(1).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource taskPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = taskPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
-        Assert.assertEquals(
-                resourceIdLabel.getValue(), fulfilledPortResource.getReservation().getLabels().getLabels(0).getValue());
+        Assert.assertEquals(getResourceIdLabel(taskPortResource), getResourceIdLabel(fulfilledPortResource));
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = CommonEnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 2, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
         Assert.assertEquals(String.valueOf(10001), envvars.get(TestConstants.PORT_ENV_NAME + "1"));
@@ -283,8 +274,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
 
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
         Assert.assertEquals(discoveryInfo.getName(), taskInfo.getName());
@@ -319,8 +309,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
 
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+        Assert.assertFalse(getResourceIdLabel(fulfilledPortResource).isEmpty());
 
         DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
         Assert.assertEquals(discoveryInfo.getName(), taskInfo.getName());
@@ -392,11 +381,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceIdLabel(reserveResource).length());
 
         // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
+        String resourceId = getResourceIdLabel(reserveResource);
         Operation createOperation = recommendations.get(1).getOperation();
         Resource createResource =
                 createOperation
@@ -404,7 +392,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .getVolumesList()
                         .get(0);
 
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
@@ -422,7 +410,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
@@ -449,7 +437,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(getFirstLabel(updatedResource).getValue(), getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(getResourceIdLabel(updatedResource), getResourceIdLabel(launchResource));
         Assert.assertEquals(updatedResource.getDisk().getPersistence().getId(), launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
@@ -502,11 +490,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceIdLabel(reserveResource).length());
 
         // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
+        String resourceId = getResourceIdLabel(reserveResource);
         Operation createOperation = recommendations.get(1).getOperation();
         Resource createResource =
             createOperation
@@ -514,7 +501,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .getVolumesList()
             .get(0);
 
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
@@ -531,7 +518,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
     }
@@ -573,8 +560,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -602,8 +588,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -628,15 +613,14 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceIdLabel(reserveResource).length());
 
         // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
+        String resourceId = getResourceIdLabel(reserveResource);
         Operation createOperation = recommendations.get(1).getOperation();
         Resource createResource = createOperation.getCreate().getVolumesList().get(0);
 
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
@@ -697,8 +681,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceIdLabel(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
 
         // Validate LAUNCH Operation
@@ -712,7 +695,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(getFirstLabel(reserveResource).getValue(), getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(getResourceIdLabel(reserveResource), getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -736,7 +719,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -765,7 +748,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList("rack:foo", "diskspeed:1234.568"),
                 new SchedulerLabelReader(launchTask).getOfferAttributeStrings());
         Resource launchResource = launchTask.getResourcesList().get(0);
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
     }
 
     @Test
@@ -792,8 +775,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(reserveResource));
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(1).getOperation();
@@ -806,7 +788,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
         Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
 
@@ -845,8 +827,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, unreserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(unreserveResource));
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
@@ -859,7 +840,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceIdLabel(launchResource));
         Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
     }
 

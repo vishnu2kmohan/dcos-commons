@@ -19,6 +19,8 @@ import java.util.UUID;
  * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase {
+    private static final String RESOURCE_ID_KEY = "resource_id";
+
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     protected OfferRequirementProvider offerRequirementProvider;
@@ -34,7 +36,12 @@ public class OfferEvaluatorTestBase {
         evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
     }
 
-    protected static Label getFirstLabel(Resource resource) {
-        return resource.getReservation().getLabels().getLabels(0);
+    protected static String getResourceIdLabel(Resource resource) {
+        for (Label label : resource.getReservation().getLabels().getLabelsList()) {
+            if (label.getKey().equals(RESOURCE_ID_KEY)) {
+                return label.getValue();
+            }
+        }
+        return null;
     }
 }

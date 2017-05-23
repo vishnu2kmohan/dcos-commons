@@ -51,9 +51,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(4).getOperation();
         for (TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
             for (Resource resource : taskInfo.getResourcesList()) {
-                Label resourceIdLabel = getFirstLabel(resource);
-                Assert.assertTrue(resourceIdLabel.getKey().equals("resource_id"));
-                Assert.assertTrue(resourceIdLabel.getValue().length() > 0);
+                Assert.assertFalse(getResourceIdLabel(resource).isEmpty());
             }
         }
     }

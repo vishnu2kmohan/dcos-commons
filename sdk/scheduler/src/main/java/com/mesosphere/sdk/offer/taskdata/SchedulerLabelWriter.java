@@ -95,7 +95,8 @@ public class SchedulerLabelWriter {
      * Any existing stored attributes are overwritten.
      */
     public SchedulerLabelWriter setOfferAttributes(Offer launchOffer) {
-        labels.put(LabelConstants.OFFER_ATTRIBUTES_LABEL, AttributeStringUtils.toString(launchOffer.getAttributesList()));
+        labels.put(LabelConstants.OFFER_ATTRIBUTES_LABEL,
+                AttributeStringUtils.toString(launchOffer.getAttributesList()));
         return this;
     }
 

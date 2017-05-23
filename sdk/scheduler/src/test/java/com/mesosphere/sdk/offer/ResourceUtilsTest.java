@@ -27,7 +27,7 @@ public class ResourceUtilsTest {
         Assert.assertNotNull(desiredMountVolume);
         Assert.assertTrue(desiredMountVolume.getDisk().hasPersistence());
         Assert.assertEquals("", desiredMountVolume.getDisk().getPersistence().getId());
-        Assert.assertEquals("", new ResourceRequirement(desiredMountVolume).getResourceId());
+        Assert.assertFalse(new ResourceRequirement(desiredMountVolume).getResourceId().isPresent());
         Assert.assertEquals(Source.Type.MOUNT, desiredMountVolume.getDisk().getSource().getType());
     }
 
@@ -41,7 +41,7 @@ public class ResourceUtilsTest {
         Assert.assertNotNull(desiredRootVolume);
         Assert.assertTrue(desiredRootVolume.getDisk().hasPersistence());
         Assert.assertEquals("", desiredRootVolume.getDisk().getPersistence().getId());
-        Assert.assertEquals("", new ResourceRequirement(desiredRootVolume).getResourceId());
+        Assert.assertFalse(new ResourceRequirement(desiredRootVolume).getResourceId().isPresent());
         Assert.assertFalse(desiredRootVolume.getDisk().hasSource());
     }
 
@@ -78,7 +78,7 @@ public class ResourceUtilsTest {
 
         validateRanges(testRanges, resource.getRanges().getRangeList());
         validateRolePrincipal(resource);
-        Assert.assertEquals(expectedResourceId, new SchedulerResourceLabelReader(resource).getResourceId().get());
+        Assert.assertEquals(expectedResourceId, SchedulerResourceLabelReader.getResourceId(resource).get());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class ResourceUtilsTest {
         final Protos.TaskInfo task = Protos.TaskInfo.newBuilder(taskInfo).setExecutor(executorInfo).build();
         List<String> expectedIds = Arrays.asList(RESERVED_RESOURCE_1_ID, RESERVED_RESOURCE_2_ID, RESERVED_RESOURCE_3_ID, RESERVED_RESOURCE_4_ID);
         List<String> actualIds = ResourceUtils.getAllResources(task).stream()
-                .map(resource -> new SchedulerResourceLabelReader(resource).getResourceId())
+                .map(SchedulerResourceLabelReader::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .collect(Collectors.toList());

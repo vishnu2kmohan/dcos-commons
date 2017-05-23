@@ -177,15 +177,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (taskInfoOptional.isPresent()) {
                 // Extract resources from task to generate the new TaskInfo with
                 taskResources = getResourcesFromTask(taskSpec, taskInfoOptional.get());
-                // Copy any information specifying prior dynamic port values to the new task
-                try {
-                    dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValues(
-                            taskInfoOptional.get().getResourcesList(), taskSpec);
-                } catch (TaskException e) {
-                    throw new InvalidRequirementException(e);
-                }
+                // Copy any information specifying prior dynamic port values to the new task:
+                dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValues(
+                        taskInfoOptional.get().getResourcesList(), taskSpec);
                 if (dynamicPortValues.isEmpty()) {
-                    // Fallback: extract preexisting dynamic port values from task env:
+                    // Fallback: try extracting preexisting dynamic port values from task env:
                     // TODO(nickbp): Remove this fallback on or after August 2017
                     dynamicPortValues = SchedulerLabelReader.getAllDynamicPortValuesFromEnv(
                             taskSpec, taskInfoOptional.get().getCommand().getEnvironment());
@@ -341,7 +337,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     taskSpec.getCommand().get(),
                     CONFIG_TEMPLATE_DOWNLOAD_DIR,
                     planParameters);
-            taskInfoBuilder.getCommandBuilder().setEnvironment(envWriter.getTaskEnv());
+            taskInfoBuilder.getCommandBuilder()
+                    .setValue(taskSpec.getCommand().get().getValue())
+                    .setEnvironment(envWriter.getTaskEnv());
         }
 
         if (taskSpec.getDiscovery().isPresent()) {

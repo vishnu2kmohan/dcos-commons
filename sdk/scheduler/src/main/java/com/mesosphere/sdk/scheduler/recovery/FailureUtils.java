@@ -57,6 +57,13 @@ public class FailureUtils {
                         .collect(Collectors.toList()));
     }
 
+    public static void clearFailed(PodInstance podInstance, StateStore stateStore) {
+        stateStore.storeTasks(
+                getTaskInfos(podInstance, stateStore).stream()
+                        .map(taskInfo -> clearFailed(taskInfo))
+                        .collect(Collectors.toList()));
+    }
+
     /**
      * Remove the permanently failed label from the TaskInfo.
      */
@@ -69,12 +76,6 @@ public class FailureUtils {
         return taskInfo.toBuilder()
                 .setLabels(new SchedulerLabelWriter(taskInfo).clearPermanentlyFailed().toProto())
                 .build();
-    }
-
-    public static Collection<Protos.TaskInfo> clearFailed(PodInstance podInstance, StateStore stateStore) {
-        return getTaskInfos(podInstance, stateStore).stream()
-                .map(taskInfo -> clearFailed(taskInfo))
-                .collect(Collectors.toList());
     }
 
     private static Collection<Protos.TaskInfo> getTaskInfos(PodInstance podInstance, StateStore stateStore) {

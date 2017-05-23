@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class PodInfoBuilder {
     private final OfferRequirement offerRequirement;
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders;
-    private final Protos.ExecutorInfo.Builder executorBuilder;
+    private final Optional<Protos.ExecutorInfo.Builder> executorBuilder;
 
     public PodInfoBuilder(OfferRequirement offerRequirement) {
         this.offerRequirement = offerRequirement;
@@ -27,14 +27,14 @@ public class PodInfoBuilder {
                 .collect(Collectors.toMap(t -> t.getName(), t -> clearResources(t.toBuilder())));
 
         Optional<ExecutorRequirement> executorRequirement = offerRequirement.getExecutorRequirementOptional();
-        executorBuilder = executorRequirement.isPresent() ?
-                executorRequirement.get().getExecutorInfo().toBuilder() :
-                null;
+        executorBuilder = executorRequirement.isPresent()
+                ? Optional.of(executorRequirement.get().getExecutorInfo().toBuilder())
+                : Optional.empty();
         // If this executor is already running, we won't be claiming any new resources for it, and we want to make sure
         // to provide an identical ExecutorInfo to Mesos for any other tasks that are going to launch in this pod.
         // So don't clear the resources on the existing protobuf, we're just going to pass it as is.
-        if (executorBuilder != null && !executorRequirement.get().isRunningExecutor()) {
-            clearResources(executorBuilder);
+        if (executorBuilder.isPresent() && !executorRequirement.get().isRunningExecutor()) {
+            clearResources(executorBuilder.get());
         }
     }
 
@@ -47,7 +47,7 @@ public class PodInfoBuilder {
     }
 
     public Optional<Protos.ExecutorInfo.Builder> getExecutorBuilder() {
-        return Optional.ofNullable(executorBuilder);
+        return executorBuilder;
     }
 
     public Collection<Protos.Resource.Builder> getResourceBuilders() {

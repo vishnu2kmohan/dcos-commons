@@ -28,8 +28,8 @@ public class SchedulerResourceLabelWriter {
     /**
      * @see TaskDataWriter#TaskDataWriter(java.util.Map)
      */
-    public SchedulerResourceLabelWriter(Resource.Builder resource) {
-        this(resource.build());
+    public SchedulerResourceLabelWriter(Resource.Builder resourceBuilder) {
+        this(resourceBuilder.build());
     }
 
     /**
@@ -42,7 +42,7 @@ public class SchedulerResourceLabelWriter {
     }
 
     /**
-     * Removes the resource reservation ID against this resource, or does nothing if the ID is not already
+     * Removes the resource reservation ID against this resource, or does nothing if the ID is not already.
      */
     public SchedulerResourceLabelWriter clearResourceId() {
         labels.remove(LabelConstants.RESOURCE_ID_KEY);
@@ -53,7 +53,7 @@ public class SchedulerResourceLabelWriter {
      * Stores the provided port name/value against this resource. Used to identify what port value had been used for
      * dynamic ports.
      */
-    public SchedulerResourceLabelWriter setPort(String portName, long portValue) {
+    public SchedulerResourceLabelWriter setPortValue(String portName, long portValue) {
         labels.put(LabelUtils.toPortLabelName(portName), Long.toString(portValue));
         return this;
     }
@@ -64,7 +64,7 @@ public class SchedulerResourceLabelWriter {
     public Resource toProto() {
         if (labels.map().isEmpty()
                 && (!resource.hasReservation() || !resource.getReservation().hasLabels())) {
-            return resource; // refrain from creating empty reservation object
+            return resource; // refrain from creating empty ReservationInfo
         }
         Resource.Builder resourceBuilder = resource.toBuilder();
         resourceBuilder.getReservationBuilder().setLabels(LabelUtils.toProto(labels.map()));

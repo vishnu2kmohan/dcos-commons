@@ -1,23 +1,18 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerEnvWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerResourceLabelWriter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -101,27 +96,32 @@ public class PortEvaluationStage extends ResourceEvaluationStage {
         }
         String taskName = getTaskName().get();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-        Protos.Resource.Builder resourceBuilder;
+
+        // Update resource labels, or add new resource entry if a match isn't found:
+        List<Protos.Resource> allResources = new ArrayList<>();
+        boolean foundMatchingResource = false;
         for (Resource.Builder r : taskBuilder.getResourcesBuilderList()) {
             if (r.getName().equals(resource.getName())) {
-                resourceBuilder = r;
-                break;
+                allResources.add(new SchedulerResourceLabelWriter(r).setPortValue(portName, port).toProto());
+                foundMatchingResource = true;
+            } else {
+                allResources.add(r.build());
             }
         }
-        if (resourceBuilder == null) {
-            resourceBuilder = taskBuilder.addResourcesBuilder().mergeFrom(resource);
+        if (!foundMatchingResource) {
+            allResources.add(new SchedulerResourceLabelWriter(resource).setPortValue(portName, port).toProto());
         }
-        ResourceUtils.mergeRanges(resourceBuilder, resource);
+        taskBuilder
+                .clearResources()
+                .addAllResources(allResources);
 
-        // Update task env(s), then resource labels:
+        // Update advertised port in task env (and readiness/health check env if applicable):
         try {
             SchedulerEnvWriter.setPort(taskBuilder, portName, customEnvKey, port);
         } catch (TaskException e) {
             LOGGER.error(String.format(
                     "Failed to add PORT envvar to Task %s", taskBuilder.getName()), e);
         }
-        // TODO update the resource **in the task**:
-        resourceBuilder = new SchedulerResourceLabelWriter(resourceBuilder).setPort(portName, port).toProto();
     }
 
     @Override
