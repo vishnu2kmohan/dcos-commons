@@ -13,194 +13,190 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Core Properties #
-nifi.flow.configuration.file={{nifi.core.flow_configuration_file}}
-nifi.flow.configuration.archive.enabled={{nifi.core.flow_configuration_enabled}}
-nifi.flow.configuration.archive.dir={{nifi.core.flow_configuration_archive_dir}}
-nifi.flow.configuration.archive.max.time={{nifi.core.flow_configuration_archive_max_time}}
-nifi.flow.configuration.archive.max.storage={{nifi.core.flow_configuration_archive_max_storage}}
-nifi.flow.configuration.archive.max.count={{nifi.core.flow_configuration_archive_max_count}}
-nifi.flowcontroller.autoResumeState={{nifi.core.flowcontroller_autoresumestate}}
-nifi.flowcontroller.graceful.shutdown.period={{nifi.core.flowcontroller_graceful_shutdown_period}}
-nifi.flowservice.writedelay.interval={{nifi.core.flowservice_writedelay_interval}}
-nifi.administrative.yield.duration={{nifi.core.administrative_yield_duration}}
-# If a component has no work to do (is "bored"), how long should we wait before checking again for work?
-nifi.bored.yield.duration={{nifi.core.bored_yield_duration}}
+# Core Properties
+nifi.flow.configuration.file={{NIFI_CORE_FLOW_CONFIGURATION_FILE}}
+nifi.flow.configuration.archive.enabled={{NIFI_CORE_FLOW_CONFIGURATION_ENABLED}}
+nifi.flow.configuration.archive.dir={{NIFI_CORE_FLOW_CONFIGURATION_ARCHIVE_DIR}}
+nifi.flow.configuration.archive.max.time={{NIFI_CORE_FLOW_CONFIGURATION_ARCHIVE_MAX_TIME}}
+nifi.flow.configuration.archive.max.storage={{NIFI_CORE_FLOW_CONFIGURATION_ARCHIVE_MAX_STORAGE}}
+nifi.flow.configuration.archive.max.count={{NIFI_CORE_FLOW_CONFIGURATION_ARCHIVE_MAX_COUNT}}
+nifi.flowcontroller.autoResumeState={{NIFI_CORE_FLOWCONTROLLER_AUTORESUMESTATE}}
+nifi.flowcontroller.graceful.shutdown.period={{NIFI_CORE_FLOWCONTROLLER_GRACEFUL_SHUTDOWN_PERIOD}}
+nifi.flowservice.writedelay.interval={{NIFI_CORE_FLOWSERVICE_WRITEDELAY_INTERVAL}}
 
-nifi.authorizer.configuration.file={{nifi.core.authorizer_configuration_file}}
-nifi.login.identity.provider.configuration.file={{nifi.core.login_identity_provider_configuration_file}}
-nifi.templates.directory={{nifi.core.templates_directory}}
-nifi.ui.banner.text={{nifi.core.ui_banner_text}}
-nifi.ui.autorefresh.interval={{nifi.core.ui_autorefresh_interval}}
-nifi.nar.library.directory={{nifi.core.nar_library_directory}}
-nifi.nar.working.directory={{nifi.core.nar_working_directory}}
-nifi.documentation.working.directory={{nifi.core.documentation_working_directory}}
-nifi.processor.scheduling.timeout={{nifi.core.processor_scheduling_timeout}}
+nifi.administrative.yield.duration={{NIFI_CORE_ADMINISTRATIVE_YIELD_DURATION}}
 
-####################
-# State Management #
-####################
-nifi.state.management.configuration.file={{nifi.state.management_configuration_file}}
-# The ID of the local state provider
-nifi.state.management.provider.local={{nifi.state.management_provider_local}}
-# The ID of the cluster-wide state provider. This will be ignored if NiFi is not clustered but must be populated if running in a cluster.
-nifi.state.management.provider.cluster={{nifi.state.management_provider_cluster}}
-# Specifies whether or not this instance of NiFi should run an embedded ZooKeeper server
-nifi.state.management.embedded.zookeeper.start={{nifi.state.management_embedded_zookeeper_start}}
-# Properties file that provides the ZooKeeper properties to use if <nifi.state.management.embedded.zookeeper.start> is set to true
-nifi.state.management.embedded.zookeeper.properties={{nifi.state.management_embedded_zookeeper_properties}}
+nifi.bored.yield.duration={{NIFI_CORE_BORED_YIELD_DURATION}}
 
+nifi.authorizer.configuration.file={{NIFI_CORE_AUTHORIZER_CONFIGURATION_FILE}}
+nifi.login.identity.provider.configuration.file={{NIFI_CORE_LOGIN_IDENTITY_PROVIDER_CONFIGURATION_FILE}}
 
-# H2 Settings
-nifi.database.directory=./database_repository
-nifi.h2.url.append=;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
+nifi.templates.directory={{NIFI_CORE_TEMPLATES_DIRECTORY}}
+nifi.ui.banner.text={{NIFI_CORE_UI_BANNER_TEXT}}
+nifi.ui.autorefresh.interval={{NIFI_CORE_UI_AUTOREFRESH_INTERVAL}}
 
-# FlowFile Repository
-nifi.flowfile.repository.implementation=org.apache.nifi.controller.repository.WriteAheadFlowFileRepository
-nifi.flowfile.repository.directory=./flowfile_repository
-nifi.flowfile.repository.partitions=256
-nifi.flowfile.repository.checkpoint.interval=2 mins
-nifi.flowfile.repository.always.sync=false
+nifi.nar.library.directory={{NIFI_CORE_NAR_LIBRARY_DIRECTORY}}
+nifi.nar.working.directory={{NIFI_CORE_NAR_WORKING_DIRECTORY}}
 
-nifi.swap.manager.implementation=org.apache.nifi.controller.FileSystemSwapManager
-nifi.queue.swap.threshold=20000
-nifi.swap.in.period=5 sec
-nifi.swap.in.threads=1
-nifi.swap.out.period=5 sec
-nifi.swap.out.threads=4
+nifi.documentation.working.directory={{NIFI_CORE_DOCUMENTATION_WORKING_DIRECTORY}}
 
-# Content Repository
-nifi.content.repository.implementation=org.apache.nifi.controller.repository.FileSystemRepository
-nifi.content.claim.max.appendable.size=10 MB
-nifi.content.claim.max.flow.files=100
-nifi.content.repository.directory.default=./content_repository
-nifi.content.repository.archive.max.retention.period=12 hours
-nifi.content.repository.archive.max.usage.percentage=50%
-nifi.content.repository.archive.enabled=true
-nifi.content.repository.always.sync=false
-nifi.content.viewer.url=/nifi-content-viewer/
+nifi.processor.scheduling.timeout={{NIFI_CORE_PROCESSOR_SCHEDULING_TIMEOUT}}
+
+# State Management Properties
+nifi.state.management.configuration.file={{NIFI_STATE_MANAGEMENT_CONFIGURATION_FILE}}
+nifi.state.management.provider.local={{NIFI_STATE_MANAGEMENT_PROVIDER_LOCAL}}
+nifi.state.management.provider.cluster={{NIFI_STATE_MANAGEMENT_PROVIDER_CLUSTER}}
+nifi.state.management.embedded.zookeeper.start={{NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_START}}
+nifi.state.management.embedded.zookeeper.properties={{NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_PROPERTIES}}
+
+# H2 Properties
+nifi.database.directory={{NIFI_H2_DATABASE_DIRECTORY}}
+nifi.h2.url.append={{NIFI_H2_URL_APPEND}}
+
+# FlowFile Repository Properties
+nifi.flowfile.repository.implementation={{NIFI_FLOWFILE_REPOSITORY_IMPLEMENTATION}}
+nifi.flowfile.repository.directory={{NIFI_FLOWFILE_REPOSITORY_DIRECTORY}}
+nifi.flowfile.repository.partitions={{NIFI_FLOWFILE_REPOSITORY_PARTITIONS}}
+nifi.flowfile.repository.checkpoint.interval={{NIFI_FLOWFILE_REPOSITORY_CHECKPOINT_INTERVAL}}
+nifi.flowfile.repository.always.sync={{NIFI_FLOWFILE_REPOSITORY_ALWAYS_SYNC}}
+
+# Swap Management Properties
+nifi.swap.manager.implementation={{NIFI_SWAP_MANAGER.IMPLEMENTATION}}
+nifi.queue.swap.threshold={{NIFI_SWAP_QUEUE_THRESHOLD}}
+nifi.swap.in.period={{NIFI_SWAP_IN_PERIOD}}
+nifi.swap.in.threads={{NIFI_SWAP_IN_THREADS}}
+nifi.swap.out.period={{NIFI_SWAP_OUT_PERIOD}}
+nifi.swap.out.threads={{NIFI_SWAP_OUT_THREADS}}
+
+# Content Repository Properties
+nifi.content.repository.implementation={{NIFI_CONTENT_REPOSITORY_IMPLEMENTATION_}
+
+# File System Content Repository Properties
+nifi.content.claim.max.appendable.size={{NIFI_CONTENT_CLAIM_MAX_APPENDABLE_SIZE}}
+nifi.content.claim.max.flow.files={{NIFI_CONTENT_CLAIM_MAX_FLOW_FILES}}
+nifi.content.repository.directory.default={{NIFI_CONTENT_REPOSITORY_DIRECTORY_DEFAULT}}
+nifi.content.repository.archive.max.retention.period={{NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_RETENTION_PERIOD}}
+nifi.content.repository.archive.max.usage.percentage={{NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_USAGE_PERCENTAGE}}
+nifi.content.repository.archive.enabled={{NIFI_CONTENT_REPOSITORY_ARCHIVE_ENABLED}}
+nifi.content.repository.always.sync={{NIFI_CONTENT_REPOSITORY_ALWAYS_SYNC}}
+nifi.content.viewer.url={{NIFI_CONTENT_VIEWER_URL}}
+
+#Volatile Content Repository Properties
+nifi.volatile.content.repository.max.size={{NIFI_VOLATILE_CONTENT_REPOSITORY_MAX_SIZE}}
+nifi.volatile.content.repository.block.size={{NIFI_VOLATILE_CONTENT_REPOSITORY_BLOCK_SIZE}}
 
 # Provenance Repository Properties
-nifi.provenance.repository.implementation=org.apache.nifi.provenance.PersistentProvenanceRepository
-nifi.provenance.repository.debug.frequency=1_000_000
-nifi.provenance.repository.encryption.key.provider.implementation=
-nifi.provenance.repository.encryption.key.provider.location=
-nifi.provenance.repository.encryption.key.id=
-nifi.provenance.repository.encryption.key=
+nifi.provenance.repository.implementation={{NIFI_PROVENANCE_REPOSITORY_IMPLEMENTATION}}
 
 # Persistent Provenance Repository Properties
-nifi.provenance.repository.directory.default=./provenance_repository
-nifi.provenance.repository.max.storage.time=24 hours
-nifi.provenance.repository.max.storage.size=1 GB
-nifi.provenance.repository.rollover.time=30 secs
-nifi.provenance.repository.rollover.size=100 MB
-nifi.provenance.repository.query.threads=2
-nifi.provenance.repository.index.threads=2
-nifi.provenance.repository.compress.on.rollover=true
-nifi.provenance.repository.always.sync=false
-nifi.provenance.repository.journal.count=16
-# Comma-separated list of fields. Fields that are not indexed will not be searchable. Valid fields are: 
-# EventType, FlowFileUUID, Filename, TransitURI, ProcessorID, AlternateIdentifierURI, Relationship, Details
-nifi.provenance.repository.indexed.fields=EventType, FlowFileUUID, Filename, ProcessorID, Relationship
-# FlowFile Attributes that should be indexed and made searchable.  Some examples to consider are filename, uuid, mime.type
-nifi.provenance.repository.indexed.attributes=
-# Large values for the shard size will result in more Java heap usage when searching the Provenance Repository
-# but should provide better performance
-nifi.provenance.repository.index.shard.size=500 MB
-# Indicates the maximum length that a FlowFile attribute can be when retrieving a Provenance Event from
-# the repository. If the length of any attribute exceeds this value, it will be truncated when the event is retrieved.
-nifi.provenance.repository.max.attribute.length=65536
+nifi.provenance.repository.directory.default={{NIFI_PROVENANCE_REPOSITORY_DIRECTORY_DEFAULT}}
+nifi.provenance.repository.max.storage.time={{NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_TIME}}
+nifi.provenance.repository.max.storage.size={{NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_SIZE}}
+nifi.provenance.repository.rollover.time={{NIFI_PROVENANCE_REPOSITORY_ROLLOVER_TIME}}
+nifi.provenance.repository.rollover.size={{NIFI_PROVENANCE_REPOSITORY_ROLLOVER_SIZE}}
+nifi.provenance.repository.query.threads={{NIFI_PROVENANCE_REPOSITORY_QUERY_THREADS}}
+nifi.provenance.repository.index.threads={{NIFI_PROVENANCE_REPOSITORY_INDEX_THREADS}}
+nifi.provenance.repository.compress.on.rollover={{NIFI_PROVENANCE_REPOSITORY_COMPRESS_ON_ROLLOVER}}
+nifi.provenance.repository.always.sync={{NIFI_PROVENANCE_REPOSITORY_ALWAYS_SYNC}}
+nifi.provenance.repository.journal.count={{NIFI_PROVENANCE_REPOSITORY_JOURNAL_COUNT}}
+nifi.provenance.repository.indexed.fields={{NIFI_PROVENANCE_REPOSITORY_INDEXED_FIELDS}}
+nifi.provenance.repository.indexed.attributes={{NIFI_PROVENANCE_REPOSITORY_INDEXED_ATTRIBUTES}}
+nifi.provenance.repository.index.shard.size={{NIFI_PROVENANCE_REPOSITORY_INDEX_SHARD_SIZE}}
+nifi.provenance.repository.max.attribute.length={{NIFI_PROVENANCE_REPOSITORY_MAX_ATTRIBUTE_LENGTH}}
 
 # Volatile Provenance Respository Properties
-nifi.provenance.repository.buffer.size=100000
+nifi.provenance.repository.buffer.size={{NIFI_PROVENANCE_REPOSITORY_BUFFER_SIZE}}
+
+# Write Ahead Provenance Repository Properties
+# (In addition to Persistent Provenance Repository Properties)
+nifi.provenance.repository.concurrent.merge.threads={{NIFI_PROVENANCE_REPOSITORY_CONCURRENT_MERGE_THREADS}}
+nifi.provenance.repository.warm.cache.frequency={{NIFI_PROVENANCE_REPOSITORY_WARM_CACHE_FREQUENCY}}
+
+# Encrypted Write Ahead Provenance Repository Properties
+nifi.provenance.repository.debug.frequency={{NIFI_PROVENANCE_REPOSITORY_DEBUG_FREQUENCY}}
+nifi.provenance.repository.encryption.key.provider.implementation={{NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_PROVIDER_IMPLEMENTATION}}
+nifi.provenance.repository.encryption.key.provider.location={{NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_PROVIDER_LOCATION}}
+nifi.provenance.repository.encryption.key.id={{NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_ID}}
+nifi.provenance.repository.encryption.key={{NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY}}
 
 # Component Status Repository
-nifi.components.status.repository.implementation=org.apache.nifi.controller.status.history.VolatileComponentStatusRepository
-nifi.components.status.repository.buffer.size=1440
-nifi.components.status.snapshot.frequency=1 min
+nifi.components.status.repository.implementation={{NIFI_COMPONENTS_STATUS_REPOSITORY_IMPLEMENTATION}}
+nifi.components.status.repository.buffer.size={{NIFI_COMPONENTS_STATUS_REPOSITORY_BUFFER_SIZE}}
+nifi.components.status.snapshot.frequency={{NIFI_COMPONENTS_STATUS_SNAPSHOT_FREQUENCY}}
 
 # Site to Site properties
-nifi.remote.input.host=
-nifi.remote.input.secure=false
-nifi.remote.input.socket.port=
-nifi.remote.input.http.enabled=true
-nifi.remote.input.http.transaction.ttl=30 sec
+nifi.remote.input.host={{NIFI_REMOTE_INPUT_HOST}}
+nifi.remote.input.secure={{NIFI_REMOTE_INPUT_SECURE}}
+nifi.remote.input.socket.port={{NIFI_REMOTE_INPUT_SOCKET_PORT}}
+nifi.remote.input.http.enabled={{NIFI_REMOTE_INPUT_HTTP_ENABLED}}
+nifi.remote.input.http.transaction.ttl={{NIFI_REMOTE_INPUT_HTTP_TRANSACTION_TTL}}
 
-# web properties #
-nifi.web.war.directory=./lib
-nifi.web.http.host=
-nifi.web.http.port=8080
-nifi.web.http.network.interface.default=
-nifi.web.https.host=
-nifi.web.https.port=
-nifi.web.https.network.interface.default=
-nifi.web.jetty.working.directory=./work/jetty
-nifi.web.jetty.threads=200
+# Web Properties
+nifi.web.war.directory={{NIFI_WEB_WAR_DIRECTORY}}
+nifi.web.http.host={{NIFI_WEB_HTTP_HOST}}
+nifi.web.http.port={{NIFI_WEB_HTTP_PORT}}
+nifi.web.http.network.interface.default={{NIFI_WEB_HTTP_NETWORK_INTERFACE_DEFAULT}}
+nifi.web.https.host={{NIFI_WEB_HTTPS_HOST}}
+nifi.web.https.port={{NIFI_WEB_HTTPS_PORT}}
+nifi.web.https.network.interface.default={{NIFI_WEB_HTTPS_NETWORK_INTERFACE_DEFAULT}}
+nifi.web.jetty.working.directory={{NIFI_WEB_JETTY_WORKING_DIRECTORY}}
+nifi.web.jetty.threads={{NIFI_WEB_JETTY_THREADS}}
 
-# security properties #
-nifi.sensitive.props.key=
-nifi.sensitive.props.key.protected=
-nifi.sensitive.props.algorithm=PBEWITHMD5AND256BITAES-CBC-OPENSSL
-nifi.sensitive.props.provider=BC
-nifi.sensitive.props.additional.keys=
+# Security Properties
+nifi.sensitive.props.key={{NIFI_SENSITIVE_PROPS_KEY}}
+nifi.sensitive.props.key.protected={{NIFI_SENSITIVE_PROPS_KEY_PROTECTED}}
+nifi.sensitive.props.algorithm={{NIFI_SENSITIVE_PROPS_ALGORITHM}}
+nifi.sensitive.props.provider={{NIFI_SENSITIVE_PROPS_PROVIDER}}
+nifi.sensitive.props.additional.keys={{NIFI_SENSITIVE_PROPS_ADDITIONAL_KEYS}}
 
-nifi.security.keystore=
-nifi.security.keystoreType=
-nifi.security.keystorePasswd=
-nifi.security.keyPasswd=
-nifi.security.truststore=
-nifi.security.truststoreType=
-nifi.security.truststorePasswd=
-nifi.security.needClientAuth=
-nifi.security.user.authorizer=file-provider
-nifi.security.user.login.identity.provider=
-nifi.security.ocsp.responder.url=
-nifi.security.ocsp.responder.certificate=
+nifi.security.keystore={{NIFI_SECURITY_KEYSTORE}}
+nifi.security.keystoreType={{NIFI_SECURITY_KEYSTORETYPE}}
+nifi.security.keystorePasswd={{NIFI_SECURITY_KEYSTOREPASSWD}}
+nifi.security.keyPasswd={{NIFI_SECURITY_KEYPASSWD}}
+nifi.security.truststore={{NIFI_SECURITY_TRUSTSTORE}}
+nifi.security.truststoreType={{NIFI_SECURITY_TRUSTSTORETYPE}}
+nifi.security.truststorePasswd={{NIFI_SECURITY_TRUSTSTOREPASSWD}}
+nifi.security.needClientAuth={{NIFI_SECURITY_NEEDCLIENTAUTH}}
+nifi.security.user.authorizer={{NIFI_SECURITY_USER_AUTHORIZER}}
+nifi.security.user.login.identity.provider={{NIFI_SECURITY_USER_LOGIN_IDENTITY_PROVIDER}}
+nifi.security.ocsp.responder.url={{NIFI_SECURITY_OCSP_RESPONDER_URL}}
+nifi.security.ocsp.responder.certificate={{NIFI_SECURITY_OCSP_RESPONDER_CERTIFICATE}}
 
-# Identity Mapping Properties #
-# These properties allow normalizing user identities such that identities coming from different identity providers
-# (certificates, LDAP, Kerberos) can be treated the same internally in NiFi. The following example demonstrates normalizing
-# DNs from certificates and principals from Kerberos into a common identity string:
-#
-# nifi.security.identity.mapping.pattern.dn=^CN=(.*?), OU=(.*?), O=(.*?), L=(.*?), ST=(.*?), C=(.*?)$
-# nifi.security.identity.mapping.value.dn=$1@$2
-# nifi.security.identity.mapping.pattern.kerb=^(.*?)/instance@(.*?)$
-# nifi.security.identity.mapping.value.kerb=$1@$2
+# Identity Mapping Properties
+nifi.security.identity.mapping.pattern.dn={{NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_DN}}
+nifi.security.identity.mapping.value.dn={{NIFI_SECURITY_IDENTITY_MAPPING_VALUE_DN}}
+nifi.security.identity.mapping.pattern.kerb={{NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_KERB}}
+nifi.security.identity.mapping.value.kerb={{NIFI_SECURITY_IDENTITY_MAPPING_VALUE_KERB}}
 
-# cluster common properties (all nodes must have same values) #
-nifi.cluster.protocol.heartbeat.interval=5 sec
-nifi.cluster.protocol.is.secure=false
+# Cluster Common Properties
+nifi.cluster.protocol.heartbeat.interval={{NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL}}
+nifi.cluster.protocol.is.secure={{NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
 
-# cluster node properties (only configure for cluster nodes) #
-nifi.cluster.is.node=false
-nifi.cluster.node.address=
-nifi.cluster.node.protocol.port=
-nifi.cluster.node.protocol.threads=10
-nifi.cluster.node.event.history.size=25
-nifi.cluster.node.connection.timeout=5 sec
-nifi.cluster.node.read.timeout=5 sec
-nifi.cluster.firewall.file=
-nifi.cluster.flow.election.max.wait.time=5 mins
-nifi.cluster.flow.election.max.candidates=
+# Cluster Node Properties
+nifi.cluster.is.node={{NIFI_CLUSTER_IS_NODE}}
+nifi.cluster.node.address={{NIFI_CLUSTER_NODE_ADDRESS}}
+nifi.cluster.node.protocol.port={{NIFI_CLUSTER_NODE_PROTOCOL_PORT}}
+nifi.cluster.node.protocol.threads={{NIFI_CLUSTER_NODE_PROTOCOL_THREADS}}
+nifi.cluster.node.event.history.size={{NIFI_CLUSTER_NODE_EVENT_HISTORY_SIZE}}
+nifi.cluster.node.connection.timeout={{NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT}}
+nifi.cluster.node.read.timeout={{NIFI_CLUSTER_NODE_READ_TIMEOUT}}
+nifi.cluster.firewall.file={{NIFI_CLUSTER_FIREWALL_FILE}}
+nifi.cluster.flow.election.max.wait.time={{NIFI_CLUSTER_FLOW_ELECTION_MAX_WAIT_TIME}}
+nifi.cluster.flow.election.max.candidates={{NIFI_CLUSTER_FLOW_ELECTION_MAX_CANDIDATES}}
 
-# zookeeper properties, used for cluster management #
-nifi.zookeeper.connect.string=
-nifi.zookeeper.connect.timeout=3 secs
-nifi.zookeeper.session.timeout=3 secs
-nifi.zookeeper.root.node=/nifi
+# Zookeeper Properties
+nifi.zookeeper.connect.string={{NIFI_ZOOKEEPER_CONNECT_STRING}}
+nifi.zookeeper.connect.timeout={{NIFI_ZOOKEEPER_CONNECT_TIMEOUT}}
+nifi.zookeeper.session.timeout={{NIFI_ZOOKEEPER_SESSION_TIMEOUT}}
+nifi.zookeeper.root.node={{NIFI_ZOOKEEPER_ROOT_NODE}}
 
-# kerberos #
-nifi.kerberos.krb5.file=
+# Kerberos Properties
+nifi.kerberos.krb5.file={{NIFI_KERBEROS_KRB5_FILE}}
+nifi.kerberos.service.principal={{NIFI_KERBEROS_SERVICE_PRINCIPAL}}
+nifi.kerberos.service.keytab.location={{NIFI_KERBEROS_SERVICE_KEYTAB_LOCATION}}
+nifi.kerberos.spnego.principal={{NIFI_KERBEROS_SPNEGO_PRINCIPAL}}
+nifi.kerberos.spnego.keytab.location={{NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION}}
+nifi.kerberos.spnego.authentication.expiration={{NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION}}
 
-# kerberos service principal #
-nifi.kerberos.service.principal=
-nifi.kerberos.service.keytab.location=
-
-# kerberos spnego principal #
-nifi.kerberos.spnego.principal=
-nifi.kerberos.spnego.keytab.location=
-nifi.kerberos.spnego.authentication.expiration=12 hours
-
-# external properties files for variable registry
-# supports a comma delimited list of file locations
-nifi.variable.registry.properties=
+# Custom Properties
+nifi.variable.registry.properties={{NIFI_VARIABLE_REGISTRY_PROPERTIES}}
