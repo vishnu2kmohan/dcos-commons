@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export JAVA_HOME=${JAVA_HOME%/} && export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms512M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./nifi-scheduler/bin/nifi ./nifi-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export JAVA_HOME=${JAVA_HOME%/} && export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms512M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./nifi-scheduler/bin/nifi ./nifi-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
@@ -21,28 +21,46 @@
   {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
-    "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
-    "FRAMEWORK_ROLE": "{{service.role}}",
+    "FRAMEWORK_USER": "{{service.user}}",
 
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
-    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
 
     "NODE_COUNT": "{{node.count}}",
+    "NODE_CPUS": "{{node.cpus}}",
+    "NODE_MEM": "{{node.mem}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
+
     {{#service.virtual_network}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     {{/service.virtual_network}}
-    "NODE_CPUS": "{{node.cpus}}",
-    "NODE_MEM": "{{node.mem}}",
-    "NODE_DISK": "{{node.disk}}",
-    "NODE_DISK_TYPE": "{{node.disk_type}}",
+
+    "TASKCFG_ALL_NODE_CONTENT_REPOSITORY_DISK_PATH": "{{node.content_repository_disk_path}}",
+    "TASKCFG_ALL_NODE_CONTENT_REPOSITORY_DISK_TYPE": "{{node.content_repository_disk_type}}",
+    "TASKCFG_ALL_NODE_CONTENT_REPOSITORY_DISK_SIZE": "{{node.content_repository_disk_size}}",
+    
+    "TASKCFG_ALL_NODE_DATABASE_REPOSITORY_DISK_PATH": "{{node.database_repository_disk_path}}",
+    "TASKCFG_ALL_NODE_DATABASE_REPOSITORY_DISK_TYPE": "{{node.database_repository_disk_type}}",
+    "TASKCFG_ALL_NODE_DATABASE_REPOSITORY_DISK_SIZE": "{{node.database_repository_disk_size}}",
+    
+    "TASKCFG_ALL_NODE_FLOWFILE_REPOSITORY_DISK_PATH": "{{node.flowfile_repository_disk_path}}",
+    "TASKCFG_ALL_NODE_FLOWFILE_REPOSITORY_DISK_TYPE": "{{node.flowfile_repository_disk_type}}",
+    "TASKCFG_ALL_NODE_FLOWFILE_REPOSITORY_DISK_SIZE": "{{node.flowfile_repository_disk_size}}",
+    
+    "TASKCFG_ALL_NODE_PROVENANCE_REPOSITORY_DISK_PATH": "{{node.provenance_repository_disk_path}}",
+    "TASKCFG_ALL_NODE_PROVENANCE_REPOSITORY_DISK_TYPE": "{{node.provenance_repository_disk_type}}",
+    "TASKCFG_ALL_NODE_PROVENANCE_REPOSITORY_DISK_SIZE": "{{node.provenance_repository_disk_size}}",
+
+    "TASKCFG_ALL_NIFI_VERSION": "{{nifi.core.version}}",
 
     "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_FILE": "{{nifi.core.flow_configuration_file}}",
     "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_ENABLED": "{{nifi.core.flow_configuration_archive_enabled}}",
@@ -73,6 +91,7 @@
     "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_PROVIDER_CLUSTER": "{{nifi.state.management_provider_cluster}}",
     "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_START": "{{nifi.state.management_embedded_zookeeper_start}}",
     "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_PROPERTIES": "{{nifi.state.management_embedded_zookeeper_properties}}",
+
     "TASKCFG_ALL_NIFI_DATABASE_DIRECTORY": "{{nifi.h2.database_directory}}",
     "TASKCFG_ALL_NIFI_H2_URL_APPEND": "{{nifi.h2.url_append}}",
 
@@ -179,6 +198,7 @@
 
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL": "{{nifi.cluster.protocol_heartbeat_interval}}",
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_IS_SECURE": "{{nifi.cluster.protocol_is_secure}}",
+
     "TASKCFG_ALL_NIFI_CLUSTER_IS_NODE": "{{nifi.cluster.is_node}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_ADDRESS": "{{nifi.cluster.node_address}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{nifi.cluster.node_protocol_port}}",
@@ -202,7 +222,7 @@
     "TASKCFG_ALL_NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION": "{{nifi.kerberos.spnego_keytab_location}}",
     "TASKCFG_ALL_NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION": "{{nifi.kerberos.spnego_authentication_expiration}}",
 
-    "TASKCFG_ALL_NIFI_VARIABLE_REGISTRY_PROPERTIES":  "{{nifi.custom.variable_registry_properties}}"
+    "TASKCFG_ALL_NIFI_VARIABLE_REGISTRY_PROPERTIES": "{{nifi.custom.variable_registry_properties}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

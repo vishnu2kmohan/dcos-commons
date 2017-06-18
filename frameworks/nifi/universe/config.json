@@ -3,7 +3,7 @@
   "properties": {
     "service": {
       "type": "object",
-      "description": "DC/OS Apache NiFi Service Configuration",
+      "description": "DC/OS Apache NiFi Service Scheduler Configuration",
       "properties": {
         "name": {
           "title": "DC/OS Apache NiFi Service Name",
@@ -12,26 +12,20 @@
           "default": "nifi"
         },
         "user": {
-          "title": "Linux User",
+          "title": "Linux User (Execution Context)",
           "description": "The Linux user under which the DC/OS Apache NiFi service will run",
           "type": "string",
           "default": "nobody"
         },
         "principal": {
-          "title": "Custom Apache Mesos Principal (optional)",
-          "description": "The principal for the service instance, or empty to use the default",
-          "type": "string",
-          "default": ""
-        },
-        "role": {
-          "title": "Custom Apache Mesos Role (optional)",
-          "description": "The role for the service instance, or empty to use the default",
+          "title": "Apache Mesos Principal (Optional)",
+          "description": "Custom Mesos Principal for the service instance, or empty to use the default",
           "type": "string",
           "default": ""
         },
         "secret_name": {
-          "title": "DC/OS Service Account Credential secret name (optional)",
-          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "title": "DC/OS Service Account Credential Secret Name (Optional)",
+          "description": "Path to the Secret to access the Service Account Credentials to use for DC/OS Service Authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
           "default": ""
         }
@@ -52,50 +46,130 @@
           "default": 1
         },
         "placement_constraint": {
-          "title": "Placement constraint",
+          "title": "Placement Constraint",
           "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
           "type": "string",
-          "default": ""
+          "default": "'hostname:UNIQUE'"
         },
-        "virtual_network": {
+        "enable_virtual_network": {
           "description": "Enable DC/OS Virtual Network",
           "type": "boolean",
           "default": false
         },
+        "virtual_network_name": {
+          "description": "DC/OS Virtual Network Name",
+          "type": "string",
+          "default": "dcos"
+        },
         "cpus": {
-          "title": "CPU count",
-          "description": "Template pod CPU requirements",
+          "title": "CPU Shares",
+          "description": "NiFi Node CPU Requirements",
           "type": "number",
-          "default": 0.1
+          "default": 1
         },
         "mem": {
           "title": "Memory size (MB)",
-          "description": "Template pod mem requirements (in MB)",
+          "description": "NiFi Node Memory Requirements (in MB)",
           "type": "integer",
-          "default": 252
+          "default": 2048
         },
-        "disk": {
-          "title": "Disk size (MB)",
-          "description": "Template pod persistent disk requirements (in MB)",
-          "type": "integer",
-          "default": 500
+        "content_repository_disk_path": {
+          "title": "Content Repository Disk Path",
+          "description": "Note: Path is relative to $MESOS_SANDBOX",
+          "type": "string",
+          "default": "content_repository"
         },
-        "disk_type": {
-          "title": "Disk type [ROOT, MOUNT]",
-          "description": "Mount volumes require preconfiguration in DC/OS",
+        "content_repository_disk_type": {
+          "title": "Content Repository Disk Type: [ROOT, MOUNT]",
+          "description": "Note: Mount volumes require preconfiguration in DC/OS",
           "enum": [
             "ROOT",
             "MOUNT"
           ],
           "default": "ROOT"
+        },
+        "content_repository_disk_size": {
+          "title": "Content Repository Disk Size (MB)",
+          "description": "NiFi Content Repository Persistent Volume Size (in MB)",
+          "type": "integer",
+          "default": 1000
+        },
+        "database_repository_disk_path": {
+          "title": "Database Repository Disk Path",
+          "description": "Note: Path is relative to $MESOS_SANDBOX",
+          "type": "string",
+          "default": "database_repository"
+        },
+        "database_repository_disk_type": {
+          "title": "Database Repository Disk Type: [ROOT, MOUNT]",
+          "description": "Note: Mount volumes require preconfiguration in DC/OS",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
+          "default": "ROOT"
+        },
+        "database_repository_disk_size": {
+          "title": "Flowfile Repository Disk Size (MB)",
+          "description": "NiFi Database Repository Persistent Volume Size (in MB)",
+          "type": "integer",
+          "default": 1000
+        },
+        "flowfile_repository_disk_path": {
+          "title": "Flowfile Repository Disk Path",
+          "description": "Note: Path is relative to $MESOS_SANDBOX",
+          "type": "string",
+          "default": "flowfile_repository"
+        },
+        "flowfile_repository_disk_type": {
+          "title": "Flowfile Repository Disk Type: [ROOT, MOUNT]",
+          "description": "Note: Mount volumes require preconfiguration in DC/OS",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
+          "default": "ROOT"
+        },
+        "flowfile_repository_disk_size": {
+          "title": "Flowfile Repository Disk Size (MB)",
+          "description": "NiFi Flowfile Repository Persistent Volume Size (in MB)",
+          "type": "integer",
+          "default": 1000
+        },
+        "provenance_repository_disk_path": {
+          "title": "Provenance Repository Disk Path",
+          "description": "Note: Path is relative to $MESOS_SANDBOX",
+          "type": "string",
+          "default": "provenance_repository"
+        },
+        "provenance_repository_disk_type": {
+          "title": "Provenance Repository Disk Type: [ROOT, MOUNT]",
+          "description": "Note: Mount volumes require preconfiguration in DC/OS",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
+          "default": "ROOT"
+        },
+        "provenance_repository_disk_size": {
+          "title": "Flowfile Repository Disk Size (MB)",
+          "description": "NiFi Provenance Repository Peristent Volume Size (in MB)",
+          "type": "integer",
+          "default": 1000
         }
       },
       "required": [
         "count",
         "cpus",
         "mem",
-        "disk",
-        "disk_type"
+        "content_repository_disk_type",
+        "content_repository_disk_size",
+        "database_repository_disk_type",
+        "database_repository_disk_size",
+        "flowfile_repository_disk_type",
+        "flowfile_repository_disk_size",
+        "provenance_repository_disk_type",
+        "provenance_repository_disk_size"
       ]
     },
     "nifi": {
@@ -107,6 +181,11 @@
           "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#core-properties-br",
           "description": "These properties apply to the core framework as a whole",
           "properties": {
+            "version": {
+              "type": "string",
+              "title": "NiFi Version",
+              "default": "1.3.0"
+            },
             "flow_configuration_file": {
               "type": "string",
               "title": "The location of the flow configuration file",
