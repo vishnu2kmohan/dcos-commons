@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./nifi-scheduler/bin/nifi ./nifi-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export JAVA_HOME=${JAVA_HOME%/} && export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms512M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./nifi-scheduler/bin/nifi ./nifi-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
@@ -21,9 +21,18 @@
   {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
-    "SLEEP_DURATION": "{{service.sleep}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
+    "FRAMEWORK_ROLE": "{{service.role}}",
+
+    "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    {{#service.secret_name}}
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
+    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    {{/service.secret_name}}
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
 
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
@@ -35,14 +44,162 @@
     "NODE_DISK": "{{node.disk}}",
     "NODE_DISK_TYPE": "{{node.disk_type}}",
 
-    "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
-    {{#service.secret_name}}
-    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
-    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
-    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_FILE": "{{nifi.flow_configuration_file}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_ENABLED": "{{nifi.flow_configuration_archive_enabled}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_DIR": "{{nifi.flow_configuration_archive_dir}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_TIME": "{{nifi.flow_configuration_archive_max_time}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_STORAGE": "{{nifi.flow_configuration_archive_max_storage}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_COUNT": "{{nifi.flow_configuration_archive_max_count}}",
+    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_AUTORESUMESTATE": "{{nifi.flowcontroller_auto_resume_state}}",
+    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_GRACEFUL_SHUTDOWN_PERIOD": "{{nifi.flowcontroller_graceful_shutdown_period}}",
+    "TASKCFG_ALL_NIFI_FLOWSERVICE_WRITEDELAY_INTERVAL": "{{nifi.flowservice_writedelay_interval}}",
+    "TASKCFG_ALL_NIFI_ADMINISTRATIVE_YIELD_DURATION": "{{nifi.administrative_yield.duration}}",
+    "TASKCFG_ALL_NIFI_BORED_YIELD_DURATION": "{{nifi.bored_yield_duration}}",
+    "TASKCFG_ALL_NIFI_AUTHORIZER_CONFIGURATION_FILE": "{{nifi.authorizer_configuration_file}}",
+    "TASKCFG_ALL_NIFI_LOGIN_IDENTITY_PROVIDER_CONFIGURATION_FILE": "{{nifi.login_identity_provider_configuration_file}}",
+    "TASKCFG_ALL_NIFI_TEMPLATES_DIRECTORY": "{{nifi.templates_directory}}",
+    "TASKCFG_ALL_NIFI_UI_BANNER_TEXT": "{{nifi.ui_banner_text}}",
+    "TASKCFG_ALL_NIFI_UI_AUTOREFRESH_INTERVAL": "{{nifi.ui_autorefresh_interval}}",
+    "TASKCFG_ALL_NIFI_NAR_LIBRARY_DIRECTORY": "{{nifi.nar_library_directory}}",
+    "TASKCFG_ALL_NIFI_NAR_WORKING_DIRECTORY": "{{nifi.nar_working_directory}}",
+    "TASKCFG_ALL_NIFI_DOCUMENTATION_WORKING_DIRECTORY": "{{nifi.documentation_working_directory}}",
+    "TASKCFG_ALL_NIFI_PROCESSOR_SCHEDULING_TIMEOUT": "{{nifi.processor_scheduling_timeout}}",
+
+    "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_CONFIGURATION_FILE": "{{nifi.state.management_configuration_file}}",
+    "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_PROVIDER_LOCAL": "{{nifi.state.management_provider_local}}",
+    "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_PROVIDER_CLUSTER": "{{nifi.state.management_provider_cluster}}",
+    "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_START": "{{nifi.state.management_embedded_zookeeper_start}}",
+    "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_PROPERTIES": "{{nifi.state.management_embedded_zookeeper_properties}}",
+    "TASKCFG_ALL_NIFI_DATABASE_DIRECTORY": "{{nifi.h2.database_directory}}",
+    "TASKCFG_ALL_NIFI_H2_URL_APPEND": "{{nifi.h2.url_append}}",
+
+    "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_IMPLEMENTATION": "{{nifi.flowfile.repository_implementation}}",
+    "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_DIRECTORY": "{{nifi.flowfile.repository_directory}}",
+    "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_PARTITIONS": "{{nifi.flowfile.repository_partitions}}",
+    "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_CHECKPOINT_INTERVAL": "{{nifi.flowfile.repository_checkpoint_interval}}",
+    "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_ALWAYS_SYNC": "{{nifi.flowfile.repository_always_sync}}",
+
+    "TASKCFG_ALL_NIFI_SWAP_MANAGER_IMPLEMENTATION": "{{nifi.swap.manager_implementation}}",
+    "TASKCFG_ALL_NIFI_QUEUE_SWAP_THRESHOLD": "{{nifi.queue.swap_threshold}}",
+    "TASKCFG_ALL_NIFI_SWAP_IN_PERIOD": "{{nifi.swap.in_period}}",
+    "TASKCFG_ALL_NIFI_SWAP_IN_THREADS": "{{nifi.swap.in_threads}}",
+    "TASKCFG_ALL_NIFI_SWAP_OUT_PERIOD": "{{nifi.swap.out_period}}",
+    "TASKCFG_ALL_NIFI_SWAP_OUT_THREADS": "{{nifi.swap.out_threads}}",
+
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_IMPLEMENTATION": "{{nifi.content.repository_implementation}}",
+    "TASKCFG_ALL_NIFI_CONTENT_CLAIM_MAX_APPENDABLE_SIZE": "{{nifi.content.claim_max_appendable_size}}",
+    "TASKCFG_ALL_NIFI_CONTENT_CLAIM_MAX_FLOW_FILES": "{{nifi.content.claim_max_flow_files}}",
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_DIRECTORY_DEFAULT": "{{nifi.content.repository_directory_default}}",
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_RETENTION_PERIOD": "{{nifi.content.repository_archive_max_retention_period}}",
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_USAGE_PERCENTAGE": "{{nifi.content.repository_archive_max_usage_percentage}}",
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_ARCHIVE_ENABLED": "{{nifi.content.repository_archive_enabled}}",
+    "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_ALWAYS_SYNC": "{{nifi.content.repository_always_sync}}",
+    "TASKCFG_ALL_NIFI_CONTENT_VIEWER_URL": "{{nifi.content.viewer_url}}",
+
+    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_MAX_SIZE": {{nifi.volatile.content_repository_max_size}}",
+    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_BLOCK_SIZE": {{nifi.volatile.content_repository_block_size}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_IMPLEMENTATION": "{{nifi.provenance.repository_implementation}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_DIRECTORY_DEFAULT": "{{nifi.provenance.repository_directory_default}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_TIME": "{{nifi.provenance.repository_max_storage_time}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_SIZE": "{{nifi.provenance.repository_max_storage_size}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ROLLOVER_TIME": "{{nifi.provenance.repository_rollover_time}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ROLLOVER_SIZE": "{{nifi.provenance.repository_rollover_size}}"
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_QUERY_THREADS": "{{nifi.provenance.repository_query_threads}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_INDEX_THREADS": "{{nifi.provenance.repository_index_threads}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_COMPRESS_ON_ROLLOVER": "{{nifi.provenance.repository_compress_on_rollover}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ALWAYS_SYNC": "{{nifi.provenance.repository_always_sync}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_JOURNAL_COUNT": "{{nifi.provenance.repository_journal_count}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_INDEXED_FIELDS": "{{nifi.provenance.repository_indexed_fields}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_INDEXED_ATTRIBUTES": "{{nifi.provenance.repository_indexed_attributes}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_INDEX_SHARD_SIZE": "{{nifi.provenance.repository_index_shard_size}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_MAX_ATTRIBUTE_LENGTH": "{{nifi.provenance.repository_max_attribute_length}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_BUFFER_SIZE": "{{nifi.provenance.repository_buffer_size}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_CONCURRENT_MERGE_THREADS": "{{nifi.provenance.repository_concurrent_merge_threads}}"
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_WARM_CACHE_FREQUENCY": "{{nifi.provenance.repository_warm_cache_frequency}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_DEBUG_FREQUENCY": "{{nifi.provenance.repository_debug_frequency}}",
+
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_PROVIDER_IMPLEMENTATION": "{{nifi.provenance.repository_encryption_key_provider_implementation}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_PROVIDER_LOCATION": "{{nifi.provenance.repository_encryption_key_provider_location}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY_ID": "{{nifi.provenance.repository_encryption_key_id}}",
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ENCRYPTION_KEY": "{{nifi.provenance.repository_encryption_key}}",
+
+    "TASKCFG_ALL_NIFI_COMPONENTS_STATUS_REPOSITORY_IMPLEMENTATION": "{{nifi.components.status_repository_implementation}}",
+    "TASKCFG_ALL_NIFI_COMPONENTS_STATUS_REPOSITORY_BUFFER_SIZE": "{{nifi.components.status_repository_buffer_size}}",
+    "TASKCFG_ALL_NIFI_COMPONENTS_STATUS_SNAPSHOT_FREQUENCY": "{{nifi.components.status_snapshot_frequency}}",
+
+    "TASKCFG_ALL_NIFI_REMOTE_INPUT_HOST": "{{nifi.remote.input_host}}",
+    "TASKCFG_ALL_NIFI_REMOTE_INPUT_SECURE": "{{nifi.remote.input_secure}}",
+    "TASKCFG_ALL_NIFI_REMOTE_INPUT_SOCKET_PORT": "{{nifi.remote.input_socket_port}}",
+    "TASKCFG_ALL_NIFI_REMOTE_INPUT_HTTP_ENABLED": "{{nifi.remote.input_http_enabled}}",
+    "TASKCFG_ALL_NIFI_REMOTE_INPUT_HTTP_TRANSACTION_TTL": "{{nifi.remote.input_http_transaction_ttl}}",
+
+    "TASKCFG_ALL_NIFI_WEB_WAR_DIRECTORY": "{{nifi.web.war_directory}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTP_HOST": "{{nifi.web.http_host}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTP_PORT": "{{nifi.web.http_port}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTP_NETWORK_INTERFACE_DEFAULT": "{{nifi.web.http_network_interface_default}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTPS_HOST": "{{nifi.web.https_host}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTPS_PORT": "{{nifi.web.https_port}}",
+    "TASKCFG_ALL_NIFI_WEB_HTTPS_NETWORK_INTERFACE_DEFAULT": "{{nifi.web.https_network_interface_default}}",
+    "TASKCFG_ALL_NIFI_WEB_JETTY_WORKING_DIRECTORY": "{{nifi.web.jetty_working_directory}}",
+    "TASKCFG_ALL_NIFI_WEB_JETTY_THREADS": "{{nifi.web.jetty_threads}}",
+
+    "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_KEY": "{{nifi.security.sensitive_props_key}}",
+    "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_KEY_PROTECTED": "{{nifi.security.sensitive_props_key_protected}}",
+    "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_ALGORITHM": "{{nifi.security.sensitive_props_algorithm}}",
+    "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_PROVIDER": "{{nifi.security.sensitive_props_provider}}",
+    "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_ADDITIONAL_KEYS": "{{nifi.security.sensitive_props_additional_keys}}",
+
+    "TASKCFG_ALL_NIFI_SECURITY_KEYSTORE" "{{nifi.security.keystore_path}}",:
+    "TASKCFG_ALL_NIFI_SECURITY_KEYSTORETYPE": "{{nifi.security.keystore_type}}",
+    "TASKCFG_ALL_NIFI_SECURITY_KEYSTOREPASSWD": "{{nifi.security.keystore_password}}",
+    "TASKCFG_ALL_NIFI_SECURITY_KEYPASSWD": "{{nifi.security.keystore_password}}",
+
+    "TASKCFG_ALL_NIFI_SECURITY_TRUSTSTORE": "{{nifi.security.truststore_path}}",
+    "TASKCFG_ALL_NIFI_SECURITY_TRUSTSTORETYPE": "{{nifi.security.truststore_type}}",
+    "TASKCFG_ALL_NIFI_SECURITY_TRUSTSTOREPASSWD": "{{nifi.security.truststore_password}}",
+
+    "TASKCFG_ALL_NIFI_SECURITY_NEEDCLIENTAUTH": "{{nifi.security.need_client_auth}}",
+    "TASKCFG_ALL_NIFI_SECURITY_USER_AUTHORIZER": "{{nifi.security.user_authorizer}}",
+    "TASKCFG_ALL_NIFI_SECURITY_USER_LOGIN_IDENTITY_PROVIDER": "{{nifi.security.user_login_identity_provider}}",
+    "TASKCFG_ALL_NIFI_SECURITY_OCSP_RESPONDER_URL": "{{nifi.security.ocsp_responder_url}}",
+    "TASKCFG_ALL_NIFI_SECURITY_OCSP_RESPONDER_CERTIFICATE": "{{nifi.security.ocsp_responder_certificate}}",
+
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_DN": "{{nifi.identity_mapping_pattern_dn}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_DN": "{{nifi.identity_mapping_value_dn}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_KERB": "{{nifi.identity_mapping_pattern_kerb}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_KERB": "{{nifi.identity_mapping_value_kerb}}",
+
+    "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL": "{{nifi.cluster.protocol_heartbeat_interval}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_IS_SECURE": "{{nifi.cluster.protocol_is_secure}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_IS_NODE": "{{nifi.cluster.is_node}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_ADDRESS": "{{nifi.cluster.node_address}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{nifi.cluster.node_protocol_port}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_THREADS": "{{nifi.cluster.node_protocol_threads}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_EVENT_HISTORY_SIZE": "{{nifi.cluster.node_event_history_size}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT": "{{nifi.cluster.node_connection_timeout}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_READ_TIMEOUT": "{{nifi.cluster.node_read_timeout}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_FIREWALL_FILE": "{{nifi.cluster.firewall_file}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_FLOW_ELECTION_MAX_WAIT_TIME": "{{nifi.cluster.flow_election_max_wait_time}}",
+    "TASKCFG_ALL_NIFI_CLUSTER_FLOW_ELECTION_MAX_CANDIDATES": "{{nifi.cluster.flow_election_max_candidates}}",
+
+    "TASKCFG_ALL_NIFI_ZOOKEEPER_CONNECT_STRING": "{{nifi.zookeeper.connect_string}}",
+    "TASKCFG_ALL_NIFI_ZOOKEEPER_CONNECT_TIMEOUT": "{{nifi.zookeeper.connect_timeout}}",
+    "TASKCFG_ALL_NIFI_ZOOKEEPER_SESSION_TIMEOUT": "{{nifi.zookeeper.session_timeout}}",
+    "TASKCFG_ALL_NIFI_ZOOKEEPER_ROOT_NODE": "{{nifi.zookeeper.root_node}}",
+
+    "TASKCFG_ALL_NIFI_KERBEROS_KRB5_FILE": "{{nifi.kerberos.krb5_file}}",
+    "TASKCFG_ALL_NIFI_KERBEROS_SERVICE_PRINCIPAL": "{{nifi.kerberos.service_principal}}",
+    "TASKCFG_ALL_NIFI_KERBEROS_SERVICE_KEYTAB_LOCATION": "{{nifi.kerberos.service_keytab_location}}",
+    "TASKCFG_ALL_NIFI_KERBEROS_SPNEGO_PRINCIPAL": "{{nifi.kerberos.spnego_principal}}",
+    "TASKCFG_ALL_NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION": "{{nifi.kerberos.spnego_keytab_location}}",
+    "TASKCFG_ALL_NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION": "{{nifi.kerberos.spnego_authentication_expiration}}",
+
+    "TASKCFG_ALL_NIFI_VARIABLE_REGISTRY_PROPERTIES":  "{{nifi.custom.variable_registry_properties}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
