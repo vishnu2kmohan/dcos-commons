@@ -162,12 +162,16 @@
         "count",
         "cpus",
         "mem",
+        "content_repository_disk_path",
         "content_repository_disk_type",
         "content_repository_disk_size",
+        "database_repository_disk_path",
         "database_repository_disk_type",
         "database_repository_disk_size",
+        "flowfile_repository_disk_path",
         "flowfile_repository_disk_type",
         "flowfile_repository_disk_size",
+        "provenance_repository_disk_path",
         "provenance_repository_disk_type",
         "provenance_repository_disk_size"
       ]
@@ -284,7 +288,7 @@
             "processor_scheduling_timeout": {
               "type": "string",
               "title": "Time to wait for a Processor’s life-cycle operation (@OnScheduled and @OnUnscheduled) to finish before other life-cycle operation (e.g., stop) could be invoked",
-              "default": "1 min"
+              "default": "1 mins"
             }
           }
         },
@@ -610,7 +614,7 @@
             "status_snapshot_frequency": {
               "type": "string",
               "title": "This value indicates how often to present a snapshot of the components' status history",
-              "default": "1 min"
+              "default": "1 mins"
             }
           }
         },

@@ -6,12 +6,32 @@ pods:
     count: {{NODE_COUNT}}
     placement: {{NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 50000
+        hard: 50000
+      RLIMIT_NPROC:
+        soft: 10000
+        hard: 10000
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{NIFI_URI}}
     tasks:
       node:
         goal: RUNNING
         cmd: "./bootstrap && sleep 100"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: node
+              port: 8080
         volumes:
           content-repository:
             path: {{NODE_CONTENT_REPOSITORY_DISK_PATH}}
@@ -161,7 +181,3 @@ pods:
           NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION: {{NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION}}
           NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION: {{NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION}}
           NIFI_VARIABLE_REGISTRY_PROPERTIES: {{NIFI_VARIABLE_REGISTRY_PROPERTIES}}
-    {{#ENABLE_VIRTUAL_NETWORK}}
-    networks:
-      {{VIRTUAL_NETWORK_NAME}}:
-    {{/ENABLE_VIRTUAL_NETWORK}}
