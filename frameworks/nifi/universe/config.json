@@ -137,7 +137,7 @@
               "title": "The number of archive files allowed",
               "default": ""
             },
-            "flowcontroller_autoresumestate": {
+            "flowcontroller_auto_resume_state": {
               "type": "boolean",
               "title": "Indicates whether -upon restart- the components on the NiFi graph should return to their last state",
               "default": true
@@ -207,667 +207,672 @@
               "title": "Time to wait for a Processor’s life-cycle operation (@OnScheduled and @OnUnscheduled) to finish before other life-cycle operation (e.g., stop) could be invoked",
               "default": "1 min"
             }
-          },
-          "state": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#state-management-br",
-            "description": "The State Management section of the Properties file provides a mechanism for configuring local and cluster-wide mechanisms for components to persist state",
-            "properties": {
-              "management_configuration_file": {
-                "type": "string",
-                "title": "The XML file that contains configuration for the local and cluster-wide State Providers",
-                "default": "./conf/state-management.xml"
-              },
-              "management_provider_local": {
-                "type": "string",
-                "title": "The ID of the Local State Provider to use. This value must match the value of the id element of one of the local-provider elements in the state-management.xml file",
-                "default": "local-provider"
-              },
-              "management_provider_cluster": {
-                "type": "string",
-                "title": "The ID of the Cluster State Provider to use. This value must match the value of the id element of one of the cluster-provider elements in the state-management.xml file",
-                "default": "zk-provider"
-              },
-              "management_embedded_zookeeper_start": {
-                "type": "boolean",
-                "title": "Specifies whether or not this instance of NiFi should start an embedded ZooKeeper Server",
-                "default": false
-              },
-              "management_embedded_zookeeper_properties": {
-                "type": "string",
-                "title": "Specifies a properties file that contains the configuration for the embedded ZooKeeper Server that is started (if the nifi.state.management.embedded.zookeeper.start property is set to true)",
-                "default": "./conf/zookeeper.properties"
-              }
+          }
+        },
+        "state": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#state-management-br",
+          "description": "The State Management section of the Properties file provides a mechanism for configuring local and cluster-wide mechanisms for components to persist state",
+          "properties": {
+            "management_configuration_file": {
+              "type": "string",
+              "title": "The XML file that contains configuration for the local and cluster-wide State Providers",
+              "default": "./conf/state-management.xml"
+            },
+            "management_provider_local": {
+              "type": "string",
+              "title": "The ID of the Local State Provider to use. This value must match the value of the id element of one of the local-provider elements in the state-management.xml file",
+              "default": "local-provider"
+            },
+            "management_provider_cluster": {
+              "type": "string",
+              "title": "The ID of the Cluster State Provider to use. This value must match the value of the id element of one of the cluster-provider elements in the state-management.xml file",
+              "default": "zk-provider"
+            },
+            "management_embedded_zookeeper_start": {
+              "type": "boolean",
+              "title": "Specifies whether or not this instance of NiFi should start an embedded ZooKeeper Server",
+              "default": false
+            },
+            "management_embedded_zookeeper_properties": {
+              "type": "string",
+              "title": "Specifies a properties file that contains the configuration for the embedded ZooKeeper Server that is started (if the nifi.state.management.embedded.zookeeper.start property is set to true)",
+              "default": "./conf/zookeeper.properties"
             }
-          },
-          "h2": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#h2-settings",
-            "description": "The H2 Settings section defines the settings for the H2 database, which keeps track of user access and flow controller history",
-            "properties": {
-              "database_directory": {
-                "type": "string",
-                "title": "The location of the H2 database directory",
-                "default": "./database_repository"
-              },
-              "url_append": {
-                "type": "string",
-                "title": "This property specifies additional arguments to add to the connection string for the H2 database. The default value should be used and should not be changed",
-                "default": ";LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE"
-              }
+          }
+        },
+        "h2": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#h2-settings",
+          "description": "The H2 Settings section defines the settings for the H2 database, which keeps track of user access and flow controller history",
+          "properties": {
+            "database_directory": {
+              "type": "string",
+              "title": "The location of the H2 database directory",
+              "default": "./database_repository"
+            },
+            "url_append": {
+              "type": "string",
+              "title": "This property specifies additional arguments to add to the connection string for the H2 database. The default value should be used and should not be changed",
+              "default": ";LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE"
             }
-          },
-          "flowfile": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#flowfile-repository",
-            "description": "The FlowFile repository keeps track of the attributes and current state of each FlowFile in the system",
-            "properties": {
-              "repository_implementation": {
-                "type": "string",
-                "title": "The FlowFile Repository implementation. The default value is org.apache.nifi.controller.repository.WriteAheadFlowFileRepository and should only be changed with caution",
-                "default": "org.apache.nifi.controller.repository.WriteAheadFlowFileRepository"
-              },
-              "repository_directory": {
-                "type": "string",
-                "title": "The location of the FlowFile Repository",
-                "default": "./flowfile_repository"
-              },
-              "repository_partitions": {
-                "type": "integer",
-                "title": "The number of partitions",
-                "default": 256
-              },
-              "repository_checkpoint_interval": {
-                "type": "string",
-                "title": "The FlowFile Repository checkpoint interval",
-                "default": "2 mins"
-              },
-              "repository_always_sync": {
-                "type": "boolean",
-                "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
-                "default": false
-              }
+          }
+        },
+        "flowfile": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#flowfile-repository",
+          "description": "The FlowFile repository keeps track of the attributes and current state of each FlowFile in the system",
+          "properties": {
+            "repository_implementation": {
+              "type": "string",
+              "title": "The FlowFile Repository implementation. The default value is org.apache.nifi.controller.repository.WriteAheadFlowFileRepository and should only be changed with caution",
+              "default": "org.apache.nifi.controller.repository.WriteAheadFlowFileRepository"
+            },
+            "repository_directory": {
+              "type": "string",
+              "title": "The location of the FlowFile Repository",
+              "default": "./flowfile_repository"
+            },
+            "repository_partitions": {
+              "type": "integer",
+              "title": "The number of partitions",
+              "default": 256
+            },
+            "repository_checkpoint_interval": {
+              "type": "string",
+              "title": "The FlowFile Repository checkpoint interval",
+              "default": "2 mins"
+            },
+            "repository_always_sync": {
+              "type": "boolean",
+              "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
+              "default": false
             }
-          },
-          "swap": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#swap-management",
-            "description": "NiFi keeps FlowFile information in memory (the JVM) but during surges of incoming data, the FlowFile information can start to take up so much of the JVM that system performance suffers. To counteract this effect, NiFi \"swaps\" the FlowFile information to disk temporarily until more JVM space becomes available again",
-            "properties": {
-              "manager_implementation": {
-                "type": "string",
-                "title": "The Swap Manager implementation. The default value is org.apache.nifi.controller.FileSystemSwapManager and should not be changed",
-                "default": "org.apache.nifi.controller.FileSystemSwapManager"
-              },
-              "queue_swap_threshold": {
-                "type": "integer",
-                "title": "The queue threshold at which NiFi starts to swap FlowFile information to disk",
-                "default": 20000
-              },
-              "in_period": {
-                "type": "string",
-                "title": "The swap in period",
-                "default": "5 secs"
-              },
-              "in_threads": {
-                "type": "integer",
-                "title": "The number of threads to use for swapping in",
-                "default": 1
-              },
-              "out_period": {
-                "type": "string",
-                "title": "The swap out period",
-                "default": "5 secs"
-              },
-              "out_threads": {
-                "type": "integer",
-                "title": "The number of threads to use for swapping out",
-                "default": 4
-              }
+          }
+        },
+        "swap": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#swap-management",
+          "description": "NiFi keeps FlowFile information in memory (the JVM) but during surges of incoming data, the FlowFile information can start to take up so much of the JVM that system performance suffers. To counteract this effect, NiFi \"swaps\" the FlowFile information to disk temporarily until more JVM space becomes available again",
+          "properties": {
+            "manager_implementation": {
+              "type": "string",
+              "title": "The Swap Manager implementation. The default value is org.apache.nifi.controller.FileSystemSwapManager and should not be changed",
+              "default": "org.apache.nifi.controller.FileSystemSwapManager"
+            },
+            "queue_swap_threshold": {
+              "type": "integer",
+              "title": "The queue threshold at which NiFi starts to swap FlowFile information to disk",
+              "default": 20000
+            },
+            "in_period": {
+              "type": "string",
+              "title": "The swap in period",
+              "default": "5 secs"
+            },
+            "in_threads": {
+              "type": "integer",
+              "title": "The number of threads to use for swapping in",
+              "default": 1
+            },
+            "out_period": {
+              "type": "string",
+              "title": "The swap out period",
+              "default": "5 secs"
+            },
+            "out_threads": {
+              "type": "integer",
+              "title": "The number of threads to use for swapping out",
+              "default": 4
             }
-          },
-          "content": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#file-system-content-repository-properties",
-            "description": "The Content Repository holds the content for all the FlowFiles in the system",
-            "properties": {
-              "repository.implementation": {
-                "type": "string",
-                "title": "The Content Repository implementation. The default value is org.apache.nifi.controller.repository.FileSystemRepository and should only be changed with caution",
-                "default": "org.apache.nifi.controller.repository.FileSystemRepository"
-              },
-              "claim_max_appendable_size": {
-                "type": "string",
-                "title": "The maximum size for a content claim",
-                "default": "10 MB"
-              },
-              "claim_max_flow_files": {
-                "type": "integer",
-                "title": "The maximum number of FlowFiles to assign to one content claim",
-                "default": 100
-              },
-              "repository_directory_default": {
-                "type": "string",
-                "title": "The location of the Content Repository",
-                "default": "./content_repository"
-              },
-              "repository_archive_max_retention_period": {
-                "type": "string",
-                "title": "If archiving is enabled (see nifi.content.repository.archive.enabled below), then this property specifies the maximum amount of time to keep the archived data",
-                "default": "12 hours"
-              },
-              "repository_archive_max_usage_percentage": {
-                "type": "string",
-                "title": "If archiving is enabled (see nifi.content.repository.archive.enabled below), then this property specifies the maximum amount of time to keep the archived data",
-                "default": "50%"
-              },
-              "repository_archive_enabled": {
-                "type": "boolean",
-                "title": "To enable content archiving, set this to true and specify a value for the nifi.content.repository.archive.max.usage.percentage property above. Content archiving enables the provenance UI to view or replay content that is no longer in a dataflow queue",
-                "default": true
-              },
-              "repository_always_sync": {
-                "type": "boolean",
-                "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
-                "default": false
-              },
-              "viewer_url": {
-                "type": "string",
-                "title": "The URL for a web-based content viewer if one is available",
-                "default": "/nifi-content-viewer/"
-              }
+          }
+        },
+        "content": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#file-system-content-repository-properties",
+          "description": "The Content Repository holds the content for all the FlowFiles in the system",
+          "properties": {
+            "repository_implementation": {
+              "type": "string",
+              "title": "The Content Repository implementation. The default value is org.apache.nifi.controller.repository.FileSystemRepository and should only be changed with caution",
+              "default": "org.apache.nifi.controller.repository.FileSystemRepository"
+            },
+            "claim_max_appendable_size": {
+              "type": "string",
+              "title": "The maximum size for a content claim",
+              "default": "10 MB"
+            },
+            "claim_max_flow_files": {
+              "type": "integer",
+              "title": "The maximum number of FlowFiles to assign to one content claim",
+              "default": 100
+            },
+            "repository_directory_default": {
+              "type": "string",
+              "title": "The location of the Content Repository",
+              "default": "./content_repository"
+            },
+            "repository_archive_max_retention_period": {
+              "type": "string",
+              "title": "If archiving is enabled (see nifi.content.repository.archive.enabled below), then this property specifies the maximum amount of time to keep the archived data",
+              "default": "12 hours"
+            },
+            "repository_archive_max_usage_percentage": {
+              "type": "string",
+              "title": "If archiving is enabled (see nifi.content.repository.archive.enabled below), then this property specifies the maximum amount of time to keep the archived data",
+              "default": "50%"
+            },
+            "repository_archive_enabled": {
+              "type": "boolean",
+              "title": "To enable content archiving, set this to true and specify a value for the nifi.content.repository.archive.max.usage.percentage property above. Content archiving enables the provenance UI to view or replay content that is no longer in a dataflow queue",
+              "default": true
+            },
+            "repository_always_sync": {
+              "type": "boolean",
+              "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
+              "default": false
+            },
+            "viewer_url": {
+              "type": "string",
+              "title": "The URL for a web-based content viewer if one is available",
+              "default": "/nifi-content-viewer/"
             }
-          },
-          "volatile": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#volatile-content-repository-properties",
-            "description": "Store flowfile content in memory instead of on disk (at the risk of data loss in the event of power/machine failure)",
-            "properties": {
-              "content_repository_max_size": {
-                "type": "string",
-                "title": "The Content Repository maximum size in memory",
-                "default": "100 MB"
-              },
-              "content_repository_block_size": {
-                "type": "string",
-                "title": "The Content Repository block size",
-                "default": "32 KB"
-              }
+          }
+        },
+        "volatile": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#volatile-content-repository-properties",
+          "description": "Store flowfile content in memory instead of on disk (at the risk of data loss in the event of power/machine failure)",
+          "properties": {
+            "content_repository_max_size": {
+              "type": "string",
+              "title": "The Content Repository maximum size in memory",
+              "default": "100 MB"
+            },
+            "content_repository_block_size": {
+              "type": "string",
+              "title": "The Content Repository block size",
+              "default": "32 KB"
             }
-          },
-          "provenance": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#provenance-repository",
-            "description": "The Provenance Repository contains the information related to Data Provenance",
-            "properties": {
-              "repository_implementation": {
-                "type": "string",
-                "title": "The Provenance Repository implementation",
-                "default": "org.apache.nifi.provenance.PersistentProvenanceRepository"
-              },
-              "repository_directory_default": {
-                "type": "string",
-                "title": "The location of the Provenance Repository",
-                "default": "./provenance_repository"
-              },
-              "repository_max_storage_time": {
-                "type": "string",
-                "title": "The maximum amount of time to keep data provenance information",
-                "default": "24 hours"
-              },
-              "repository_max_storage_size": {
-                "type": "string",
-                "title": "The maximum amount of data provenance information to store at a time",
-                "default": "1 GB"
-              },
-              "repository_rollover_time": {
-                "type": "string",
-                "title": "The amount of information to roll over at a time",
-                "default": "100 MB"
-              },
-              "repository_query_threads": {
-                "type": "integer",
-                "title": "The number of threads to use for Provenance Repository queries",
-                "default": 2
-              },
-              "repository_index_threads": {
-                "type": "integer",
-                "title": "The number of threads to use for indexing Provenance events so that they are searchable",
-                "default": 2
-              },
-              "repository_compress_on_rollover": {
-                "type": "boolean",
-                "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
-                "default": false
-              },
-              "repository_journal_count": {
-                "type": "integer",
-                "title": "The number of journal files that should be used to serialize Provenance Event data. Increasing this value will allow more tasks to simultaneously update the repository but will result in more expensive merging of the journal files later. This value should ideally be equal to the number of threads that are expected to update the repository simultaneously, but 16 tends to work well in must environments",
-                "default": 16
-              },
-              "repository_indexed_fields": {
-                "type": "string",
-                "title": "This is a comma-separated list of the fields that should be indexed and made searchable. Fields that are not indexed will not be searchable. Valid fields are: EventType, FlowFileUUID, Filename, TransitURI, ProcessorID, AlternateIdentifierURI, Relationship, Details. The default value is: EventType, FlowFileUUID, Filename, ProcessorID",
-                "default": "EventType, FlowFileUUID, Filename, ProcessorID, Relationship"
-              },
-              "repository_indexed_attributes": {
-                "type": "string",
-                "title": "This is a comma-separated list of FlowFile Attributes that should be indexed and made searchable. It is blank by default. But some good examples to consider are filename, uuid, and mime.type as well as any custom attritubes you might use which are valuable for your use case",
-                "default": ""
-              },
-              "repository_index_shard_size": {
-                "type": "string",
-                "title": "Large values for the shard size will result in more Java heap usage when searching the Provenance Repository but should provide better performance",
-                "default": "500 MB"
-              },
-              "repository_max_attribute_length": {
-                "type": "integer",
-                "title": "Indicates the maximum length that a FlowFile attribute can be when retrieving a Provenance Event from the repository. If the length of any attribute exceeds this value, it will be truncated when the event is retrieved",
-                "default": 65536
-              },
-              "repository_buffer_size": {
-                "type": "integer",
-                "title": "The (Volatile) Provenance Repository buffer size",
-                "default": 100000
-              },
-              "repository_concurrent_merge_threads": {
-                "type": "integer",
-                "title": "Apache Lucene creates several \"segments\" in an Index. These segments are periodically merged together in order to provide faster querying. This property specifies the maximum number of threads that are allowed to be used for each of the storage directories",
-                "default": 2
-              },
-              "repository_warm_cache_frequency": {
-                "type": "string",
-                "title": "Warming the cache does take some CPU resources, but more importantly it will evict other data from the Operating System disk cache and will result in reading (potentially a great deal of) data from the disk. This can result in lower NiFi performance. However, if NiFi is running in an environment where CPU and disk are not fully utilized, this feature can result in far faster Provenance queries",
-                "default": ""
-              },
-              "repository_debug_frequency": {
-                "type": "string",
-                "title": "Controls the number of events processed between DEBUG statements documenting the performance metrics of the repository. This value is only used when DEBUG level statements are enabled in the log configuration",
-                "default": "1_000_000"
-              },
-              "repository_encryption_key_provider_implementation": {
-                "type": "string",
-                "title": "This is the fully-qualified class name of the key provider. A key provider is the datastore interface for accessing the encryption key to protect the provenance events. There are currently two implementations — StaticKeyProvider which reads a key directly from nifi.properties, and FileBasedKeyProvider which reads n many keys from an encrypted file. The interface is extensible, and HSM-backed or other providers are expected in the future",
-                "default": ""
-              },
-              "repository_encryption_key_provider_location": {
-                "type": "string",
-                "title": "The path to the key definition resource (empty for StaticKeyProvider, ./keys.nkp or similar path for FileBasedKeyProvider). For future providers like an HSM, this may be a connection string or URL",
-                "default": ""
-              },
-              "repository_encryption_key_id": {
-                "type": "string",
-                "title": "The active key ID to use for encryption (e.g. Key1).",
-                "default": ""
-              },
-              "repository_encryption_key": {
-                "type": "string",
-                "title": "The key to use for StaticKeyProvider. The key format is hex-encoded (0123456789ABCDEFFEDCBA98765432100123456789ABCDEFFEDCBA9876543210) but can also be encrypted using the ./encrypt-config.sh tool in NiFi Toolkit",
-                "default": ""
-              }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#provenance-repository",
+          "description": "The Provenance Repository contains the information related to Data Provenance",
+          "properties": {
+            "repository_implementation": {
+              "type": "string",
+              "title": "The Provenance Repository implementation",
+              "default": "org.apache.nifi.provenance.PersistentProvenanceRepository"
+            },
+            "repository_directory_default": {
+              "type": "string",
+              "title": "The location of the Provenance Repository",
+              "default": "./provenance_repository"
+            },
+            "repository_max_storage_time": {
+              "type": "string",
+              "title": "The maximum amount of time to keep data provenance information",
+              "default": "24 hours"
+            },
+            "repository_max_storage_size": {
+              "type": "string",
+              "title": "The maximum amount of data provenance information to store at a time",
+              "default": "1 GB"
+            },
+            "repository_rollover_time": {
+              "type": "string",
+              "title": "The amount of information to roll over at a time",
+              "default": "100 MB"
+            },
+            "repository_query_threads": {
+              "type": "integer",
+              "title": "The number of threads to use for Provenance Repository queries",
+              "default": 2
+            },
+            "repository_index_threads": {
+              "type": "integer",
+              "title": "The number of threads to use for indexing Provenance events so that they are searchable",
+              "default": 2
+            },
+            "repository_compress_on_rollover": {
+              "type": "boolean",
+              "title": "Indicates whether to compress the provenance information when an \"event file\" is rolled over",
+              "default": true
+            },
+            "repository_always_sync": {
+              "type": "boolean",
+              "title": "If set to true, any change to the repository will be synchronized to the disk, meaning that NiFi will ask the operating system not to cache the information. This is very expensive and can significantly reduce NiFi performance. However, if it is false, there could be the potential for data loss if either there is a sudden power loss or the operating system crashes",
+              "default": false
+            },
+            "repository_journal_count": {
+              "type": "integer",
+              "title": "The number of journal files that should be used to serialize Provenance Event data. Increasing this value will allow more tasks to simultaneously update the repository but will result in more expensive merging of the journal files later. This value should ideally be equal to the number of threads that are expected to update the repository simultaneously, but 16 tends to work well in must environments",
+              "default": 16
+            },
+            "repository_indexed_fields": {
+              "type": "string",
+              "title": "This is a comma-separated list of the fields that should be indexed and made searchable. Fields that are not indexed will not be searchable. Valid fields are: EventType, FlowFileUUID, Filename, TransitURI, ProcessorID, AlternateIdentifierURI, Relationship, Details. The default value is: EventType, FlowFileUUID, Filename, ProcessorID",
+              "default": "EventType, FlowFileUUID, Filename, ProcessorID, Relationship"
+            },
+            "repository_indexed_attributes": {
+              "type": "string",
+              "title": "This is a comma-separated list of FlowFile Attributes that should be indexed and made searchable. It is blank by default. But some good examples to consider are filename, uuid, and mime.type as well as any custom attritubes you might use which are valuable for your use case",
+              "default": ""
+            },
+            "repository_index_shard_size": {
+              "type": "string",
+              "title": "Large values for the shard size will result in more Java heap usage when searching the Provenance Repository but should provide better performance",
+              "default": "500 MB"
+            },
+            "repository_max_attribute_length": {
+              "type": "integer",
+              "title": "Indicates the maximum length that a FlowFile attribute can be when retrieving a Provenance Event from the repository. If the length of any attribute exceeds this value, it will be truncated when the event is retrieved",
+              "default": 65536
+            },
+            "repository_buffer_size": {
+              "type": "integer",
+              "title": "The (Volatile) Provenance Repository buffer size",
+              "default": 100000
+            },
+            "repository_concurrent_merge_threads": {
+              "type": "integer",
+              "title": "Apache Lucene creates several \"segments\" in an Index. These segments are periodically merged together in order to provide faster querying. This property specifies the maximum number of threads that are allowed to be used for each of the storage directories",
+              "default": 2
+            },
+            "repository_warm_cache_frequency": {
+              "type": "string",
+              "title": "Warming the cache does take some CPU resources, but more importantly it will evict other data from the Operating System disk cache and will result in reading (potentially a great deal of) data from the disk. This can result in lower NiFi performance. However, if NiFi is running in an environment where CPU and disk are not fully utilized, this feature can result in far faster Provenance queries",
+              "default": ""
+            },
+            "repository_debug_frequency": {
+              "type": "string",
+              "title": "Controls the number of events processed between DEBUG statements documenting the performance metrics of the repository. This value is only used when DEBUG level statements are enabled in the log configuration",
+              "default": "1_000_000"
+            },
+            "repository_encryption_key_provider_implementation": {
+              "type": "string",
+              "title": "This is the fully-qualified class name of the key provider. A key provider is the datastore interface for accessing the encryption key to protect the provenance events. There are currently two implementations — StaticKeyProvider which reads a key directly from nifi.properties, and FileBasedKeyProvider which reads n many keys from an encrypted file. The interface is extensible, and HSM-backed or other providers are expected in the future",
+              "default": ""
+            },
+            "repository_encryption_key_provider_location": {
+              "type": "string",
+              "title": "The path to the key definition resource (empty for StaticKeyProvider, ./keys.nkp or similar path for FileBasedKeyProvider). For future providers like an HSM, this may be a connection string or URL",
+              "default": ""
+            },
+            "repository_encryption_key_id": {
+              "type": "string",
+              "title": "The active key ID to use for encryption (e.g. Key1).",
+              "default": ""
+            },
+            "repository_encryption_key": {
+              "type": "string",
+              "title": "The key to use for StaticKeyProvider. The key format is hex-encoded (0123456789ABCDEFFEDCBA98765432100123456789ABCDEFFEDCBA9876543210) but can also be encrypted using the ./encrypt-config.sh tool in NiFi Toolkit",
+              "default": ""
             }
-          },
-          "components": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#component-status-repository",
-            "description": "The Component Status Repository contains the information for the Component Status History tool in the User Interface",
-            "properties": {
-              "status_repository_implementation": {
-                "type": "string",
-                "title": "The Component Status Repository implementation",
-                "default": "org.apache.nifi.controller.status.history.VolatileComponentStatusRepository"
-              },
-              "status_repository_buffer_size": {
-                "type": "integer",
-                "title": "Specifies the buffer size for the Component Status Repository",
-                "default": 1440
-              },
-              "status_snapshot_frequency": {
-                "type": "string",
-                "title": "This value indicates how often to present a snapshot of the components' status history",
-                "default": "1 min"
-              }
+          }
+        },
+        "components": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#component-status-repository",
+          "description": "The Component Status Repository contains the information for the Component Status History tool in the User Interface",
+          "properties": {
+            "status_repository_implementation": {
+              "type": "string",
+              "title": "The Component Status Repository implementation",
+              "default": "org.apache.nifi.controller.status.history.VolatileComponentStatusRepository"
+            },
+            "status_repository_buffer_size": {
+              "type": "integer",
+              "title": "Specifies the buffer size for the Component Status Repository",
+              "default": 1440
+            },
+            "status_snapshot_frequency": {
+              "type": "string",
+              "title": "This value indicates how often to present a snapshot of the components' status history",
+              "default": "1 min"
             }
-          },
-          "remote": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties",
-            "description": "These properties govern how this instance of NiFi communicates with remote instances of NiFi when Remote Process Groups are configured in the dataflow",
-            "properties": {
-              "input_host": {
-                "type": "string",
-                "title": "The host name that will be given out to clients to connect to this NiFi instance for Site-to-Site communication. By default, it is the value from InetAddress.getLocalHost().getHostName(). On UNIX-like operating systems, this is typically the output from the hostname command",
-                "default": ""
-              },
-              "input_secure": {
-                "type": "boolean",
-                "title": "This indicates whether communication between this instance of NiFi and remote NiFi instances should be secure. By default, it is set to false. In order for secure site-to-site to work, set the property to true",
-                "default": false
-              },
-              "input_socket_port": {
-                "type": "string",
-                "title": "The remote input socket port for Site-to-Site communication. By default, it is blank, but it must have a value in order to use RAW socket as transport protocol for Site-to-Site",
-                "default": ""
-              },
-              "input_http_enabled": {
-                "type": "boolean",
-                "title": "Specifies whether HTTP Site-to-Site should be enabled on this host. By default, it is set to true. Whether a Site-to-Site client uses HTTP or HTTPS is determined by nifi.remote.input.secure. If it is set to true, then requests are sent as HTTPS to nifi.web.https.port. If set to false, HTTP requests are sent to nifi.web.http.port",
-                "default": true
-              },
-              "input_http_transaction_ttl": {
-                "type": "string",
-                "title": "Specifies how long a transaction can stay alive on the server",
-                "default": "30 secs"
-              }
+          }
+        },
+        "remote": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties",
+          "description": "These properties govern how this instance of NiFi communicates with remote instances of NiFi when Remote Process Groups are configured in the dataflow",
+          "properties": {
+            "input_host": {
+              "type": "string",
+              "title": "The host name that will be given out to clients to connect to this NiFi instance for Site-to-Site communication. By default, it is the value from InetAddress.getLocalHost().getHostName(). On UNIX-like operating systems, this is typically the output from the hostname command",
+              "default": ""
+            },
+            "input_secure": {
+              "type": "boolean",
+              "title": "This indicates whether communication between this instance of NiFi and remote NiFi instances should be secure. By default, it is set to false. In order for secure site-to-site to work, set the property to true",
+              "default": false
+            },
+            "input_socket_port": {
+              "type": "string",
+              "title": "The remote input socket port for Site-to-Site communication. By default, it is blank, but it must have a value in order to use RAW socket as transport protocol for Site-to-Site",
+              "default": ""
+            },
+            "input_http_enabled": {
+              "type": "boolean",
+              "title": "Specifies whether HTTP Site-to-Site should be enabled on this host. By default, it is set to true. Whether a Site-to-Site client uses HTTP or HTTPS is determined by nifi.remote.input.secure. If it is set to true, then requests are sent as HTTPS to nifi.web.https.port. If set to false, HTTP requests are sent to nifi.web.http.port",
+              "default": true
+            },
+            "input_http_transaction_ttl": {
+              "type": "string",
+              "title": "Specifies how long a transaction can stay alive on the server",
+              "default": "30 secs"
             }
-          },
-          "web": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties",
-            "description": "These properties pertain to the web-based User Interface",
-            "properties": {
-              "war_directory": {
-                "type": "string",
-                "title": "This is the location of the web war directory",
-                "default": "./lib"
-              },
-              "http_host": {
-                "type": "string",
-                "title": "The HTTP host",
-                "default": ""
-              },
-              "http_port": {
-                "type": "string",
-                "title": "The HTTP port",
-                "default": "8080"
-              },
-              "http_port_forwarding": {
-                "type": "string",
-                "title": "The port which forwards incoming HTTP requests to nifi.web.http.host. This property is designed to be used with port forwarding, when NiFi has to be started by a non-root user for better security, yet it needs to be accessed via low port to go through a firewall",
-                "default": ""
-              },
-              "http_network_interface": {
-                "type": "string",
-                "title": "The name of the network interface to which NiFi should bind for HTTP requests",
-                "default": ""
-              },
-              "https_host": {
-                "type": "string",
-                "title": "The HTTPS host",
-                "default": ""
-              },
-              "https_port": {
-                "type": "string",
-                "title": "The HTTPS port",
-                "default": "8443"
-              },
-              "https_port_forwarding": {
-                "type": "string",
-                "title": "Same as nifi.web.http.port.forwarding, but with HTTPS for secure communication",
-                "default": ""
-              },
-              "https_network_interface": {
-                "type": "string",
-                "title": "The name of the network interface to which NiFi should bind for HTTPS requests",
-                "default": ""
-              },
-              "jetty_working_directory": {
-                "type": "string",
-                "title": "The location of the Jetty working directory",
-                "default": "./work/jetty"
-              },
-              "jetty_threads": {
-                "type": "integer",
-                "title": "The number of Jetty threads",
-                "default": 200
-              }
+          }
+        },
+        "web": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties",
+          "description": "These properties pertain to the web-based User Interface",
+          "properties": {
+            "war_directory": {
+              "type": "string",
+              "title": "This is the location of the web war directory",
+              "default": "./lib"
+            },
+            "http_host": {
+              "type": "string",
+              "title": "The HTTP host",
+              "default": ""
+            },
+            "http_port": {
+              "type": "string",
+              "title": "The HTTP port",
+              "default": "8080"
+            },
+            "http_port_forwarding": {
+              "type": "string",
+              "title": "The port which forwards incoming HTTP requests to nifi.web.http.host. This property is designed to be used with port forwarding, when NiFi has to be started by a non-root user for better security, yet it needs to be accessed via low port to go through a firewall",
+              "default": ""
+            },
+            "http_network_interface": {
+              "type": "string",
+              "title": "The name of the network interface to which NiFi should bind for HTTP requests",
+              "default": ""
+            },
+            "https_host": {
+              "type": "string",
+              "title": "The HTTPS host",
+              "default": ""
+            },
+            "https_port": {
+              "type": "string",
+              "title": "The HTTPS port",
+              "default": "8443"
+            },
+            "https_port_forwarding": {
+              "type": "string",
+              "title": "Same as nifi.web.http.port.forwarding, but with HTTPS for secure communication",
+              "default": ""
+            },
+            "https_network_interface": {
+              "type": "string",
+              "title": "The name of the network interface to which NiFi should bind for HTTPS requests",
+              "default": ""
+            },
+            "jetty_working_directory": {
+              "type": "string",
+              "title": "The location of the Jetty working directory",
+              "default": "./work/jetty"
+            },
+            "jetty_threads": {
+              "type": "integer",
+              "title": "The number of Jetty threads",
+              "default": 200
             }
-          },
-          "security": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#security-properties",
-            "description": "These properties pertain to various security features in NiFi",
-            "properties": {
-              "sensitive_props_key": {
-                "type": "string",
-                "title": "This is the password used to encrypt any sensitive property values that are configured in processors",
-                "default": ""
-              },
-              "sensitive_props_algorithm": {
-                "type": "string",
-                "title": "The algorithm used to encrypt sensitive properties",
-                "default": "PBEWITHMD5AND256BITAES-CBC-OPENSSL"
-              },
-              "sensitive_props_provider": {
-                "type": "string",
-                "title": "The sensitive property provider",
-                "default": "BC"
-              },
-              "sensitive_props_additional_keys": {
-                "type": "string",
-                "title": "The comma separated list of properties to encrypt in addition to the default sensitive properties (see Encrypt-Config Tool)",
-                "default": ""
-              },
-              "keystore_path": {
-                "type": "string",
-                "title": "The full path and name of the keystore",
-                "default": ""
-              },
-              "keystore_type": {
-                "type": "string",
-                "title": "The keystore type",
-                "default": ""
-              },
-              "keystore_password": {
-                "type": "string",
-                "title": "The keystore password",
-                "default": ""
-              },
-              "key_password": {
-                "type": "string",
-                "title": "The key password",
-                "default": ""
-              },
-              "truststore_path": {
-                "type": "string",
-                "title": "The full path and name of the truststore",
-                "default": ""
-              },
-              "truststore_type": {
-                "type": "string",
-                "title": "The truststore type",
-                "default": ""
-              },
-              "truststore_password": {
-                "type": "string",
-                "title": "The truststore password",
-                "default": ""
-              },
-              "need_client_auth": {
-                "type": "boolean",
-                "title": "This indicates whether client authentication in the cluster protocol",
-                "default": ""
-              },
-              "user_authorizer": {
-                "type": "string",
-                "title": "Specifies which of the configured Authorizers in the authorizers.xml file to use",
-                "default": "file-provider"
-              },
-              "user_login_identity_provider": {
-                "type": "string",
-                "title": "This indicates what type of login identity provider to use",
-                "default": ""
-              },
-              "ocsp_responder_url": {
-                "type": "string",
-                "title": "This is the URL for the Online Certificate Status Protocol (OCSP) responder if one is being used",
-                "default": ""
-              },
-              "ocsp_responder_certificate": {
-                "type": "string",
-                "title": "This is the location of the OCSP responder certificate if one is being used",
-                "default": ""
-              }
+          }
+        },
+        "security": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#security-properties",
+          "description": "These properties pertain to various security features in NiFi",
+          "properties": {
+            "sensitive_props_key": {
+              "type": "string",
+              "title": "This is the password used to encrypt any sensitive property values that are configured in processors",
+              "default": ""
+            },
+            "sensitive_props_algorithm": {
+              "type": "string",
+              "title": "The algorithm used to encrypt sensitive properties",
+              "default": "PBEWITHMD5AND256BITAES-CBC-OPENSSL"
+            },
+            "sensitive_props_provider": {
+              "type": "string",
+              "title": "The sensitive property provider",
+              "default": "BC"
+            },
+            "sensitive_props_additional_keys": {
+              "type": "string",
+              "title": "The comma separated list of properties to encrypt in addition to the default sensitive properties (see Encrypt-Config Tool)",
+              "default": ""
+            },
+            "keystore_path": {
+              "type": "string",
+              "title": "The full path and name of the keystore",
+              "default": ""
+            },
+            "keystore_type": {
+              "type": "string",
+              "title": "The keystore type",
+              "default": ""
+            },
+            "keystore_password": {
+              "type": "string",
+              "title": "The keystore password",
+              "default": ""
+            },
+            "key_password": {
+              "type": "string",
+              "title": "The key password",
+              "default": ""
+            },
+            "truststore_path": {
+              "type": "string",
+              "title": "The full path and name of the truststore",
+              "default": ""
+            },
+            "truststore_type": {
+              "type": "string",
+              "title": "The truststore type",
+              "default": ""
+            },
+            "truststore_password": {
+              "type": "string",
+              "title": "The truststore password",
+              "default": ""
+            },
+            "need_client_auth": {
+              "type": "string",
+              "title": "This indicates whether client authentication in the cluster protocol",
+              "default": ""
+            },
+            "user_authorizer": {
+              "type": "string",
+              "title": "Specifies which of the configured Authorizers in the authorizers.xml file to use",
+              "default": "file-provider"
+            },
+            "user_login_identity_provider": {
+              "type": "string",
+              "title": "This indicates what type of login identity provider to use",
+              "default": ""
+            },
+            "ocsp_responder_url": {
+              "type": "string",
+              "title": "This is the URL for the Online Certificate Status Protocol (OCSP) responder if one is being used",
+              "default": ""
+            },
+            "ocsp_responder_certificate": {
+              "type": "string",
+              "title": "This is the location of the OCSP responder certificate if one is being used",
+              "default": ""
             }
-          },
-          "identity": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#identity-mapping-properties",
-            "description": "These properties can be utilized to normalize user identities. When implemented, identities authenticated by different identity providers (certificates, LDAP, Kerberos) are treated the same internally in NiFi. As a result, duplicate users are avoided and user-specific configurations such as authorizations only need to be setup once per user",
-            "properties": {
-              "mapping_pattern_dn": {
-                "type": "string",
-                "title": "Identity mapping regex for certificates",
-                "default": "^CN=(.*?), OU=(.*?), O=(.*?), L=(.*?), ST=(.*?), C=(.*?)$"
-              },
-              "mapping_value_dn": {
-                "type": "string",
-                "title": "Identity normalization for Kerberos",
-                "default": "$1@$2"
-              },
-              "mapping_pattern_kerb": {
-                "type": "string",
-                "title": "Identity mapping regex for Kerberos",
-                "default": "^(.*?)/instance@(.*?)$"
-              }
+          }
+        },
+        "identity": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#identity-mapping-properties",
+          "description": "These properties can be utilized to normalize user identities. When implemented, identities authenticated by different identity providers (certificates, LDAP, Kerberos) are treated the same internally in NiFi. As a result, duplicate users are avoided and user-specific configurations such as authorizations only need to be setup once per user",
+          "properties": {
+            "mapping_pattern_dn": {
+              "type": "string",
+              "title": "Identity mapping regex for certificates",
+              "default": "^CN=(.*?), OU=(.*?), O=(.*?), L=(.*?), ST=(.*?), C=(.*?)$"
+            },
+            "mapping_value_dn": {
+              "type": "string",
+              "title": "Identity normalization for Kerberos",
+              "default": "$1@$2"
+            },
+            "mapping_pattern_kerb": {
+              "type": "string",
+              "title": "Identity mapping regex for Kerberos",
+              "default": "^(.*?)/instance@(.*?)$"
             }
-          },
-          "cluster": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster-common-properties",
-            "description": "NiFi Cluster Configuration",
-            "properties": {
-              "protocol_heartbeat_interval": {
-                "type": "string",
-                "title": "The interval at which nodes should emit heartbeats to the Cluster Coordinator",
-                "default": "5 secs"
-              },
-              "protocol_is_secure": {
-                "type": "boolean",
-                "title": "This indicates whether cluster communications are secure",
-                "default": false
-              },
-              "is_node": {
-                "type": "boolean",
-                "title": "Set this to true if the instance is a node in a cluster",
-                "default": true
-              },
-              "node_protocol_port": {
-                "type": "string",
-                "title": "The node’s protocol port",
-                "default": ""
-              },
-              "node_protocol_threads": {
-                "type": "integer",
-                "title": "The number of threads that should be used to communicate with other nodes in the cluster",
-                "default": 10
-              },
-              "node_event_history_size": {
-                "type": "integer",
-                "title": "When the state of a node in the cluster is changed, an event is generated and can be viewed in the Cluster page. This value indicates how many events to keep in memory for each node",
-                "default": 25
-              },
-              "node_connection_timeout": {
-                "type": "string",
-                "title": "When connecting to another node in the cluster, specifies how long this node should wait before considering the connection a failure",
-                "default": "5 secs"
-              },
-              "node_read_timeout": {
-                "type": "string",
-                "title": "When communicating with another node in the cluster, specifies how long this node should wait to receive information from the remote node before considering the communication with the node a failure",
-                "default": "5 secs"
-              },
-              "firewall_file": {
-                "type": "string",
-                "title": "The location of the node firewall file. This is a file that may be used to list all the nodes that are allowed to connect to the cluster. It provides an additional layer of security",
-                "default": ""
-              },
-              "flow_election_max_wait_time": {
-                "type": "string",
-                "title": "Specifies the amount of time to wait before electing a Flow as the \"correct\" Flow. If the number of Nodes that have voted is equal to the number specified by the nifi.cluster.flow.election.max.candidates property, the cluster will not wait this long",
-                "default": "5 mins"
-              },
-              "flow_election_max_candidates": {
-                "type": "string",
-                "title": "Specifies the number of Nodes required in the cluster to cause early election of Flows. This allows the Nodes in the cluster to avoid having to wait a long time before starting processing if we reach at least this number of nodes in the cluster",
-                "default": ""
-              }
+          }
+        },
+        "cluster": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster-common-properties",
+          "description": "NiFi Cluster Configuration",
+          "properties": {
+            "protocol_heartbeat_interval": {
+              "type": "string",
+              "title": "The interval at which nodes should emit heartbeats to the Cluster Coordinator",
+              "default": "5 secs"
+            },
+            "protocol_is_secure": {
+              "type": "boolean",
+              "title": "This indicates whether cluster communications are secure",
+              "default": false
+            },
+            "is_node": {
+              "type": "boolean",
+              "title": "Set this to true if the instance is a node in a cluster",
+              "default": true
+            },
+            "node_protocol_port": {
+              "type": "string",
+              "title": "The node’s protocol port",
+              "default": ""
+            },
+            "node_protocol_threads": {
+              "type": "integer",
+              "title": "The number of threads that should be used to communicate with other nodes in the cluster",
+              "default": 10
+            },
+            "node_event_history_size": {
+              "type": "integer",
+              "title": "When the state of a node in the cluster is changed, an event is generated and can be viewed in the Cluster page. This value indicates how many events to keep in memory for each node",
+              "default": 25
+            },
+            "node_connection_timeout": {
+              "type": "string",
+              "title": "When connecting to another node in the cluster, specifies how long this node should wait before considering the connection a failure",
+              "default": "5 secs"
+            },
+            "node_read_timeout": {
+              "type": "string",
+              "title": "When communicating with another node in the cluster, specifies how long this node should wait to receive information from the remote node before considering the communication with the node a failure",
+              "default": "5 secs"
+            },
+            "firewall_file": {
+              "type": "string",
+              "title": "The location of the node firewall file. This is a file that may be used to list all the nodes that are allowed to connect to the cluster. It provides an additional layer of security",
+              "default": ""
+            },
+            "flow_election_max_wait_time": {
+              "type": "string",
+              "title": "Specifies the amount of time to wait before electing a Flow as the \"correct\" Flow. If the number of Nodes that have voted is equal to the number specified by the nifi.cluster.flow.election.max.candidates property, the cluster will not wait this long",
+              "default": "5 mins"
+            },
+            "flow_election_max_candidates": {
+              "type": "string",
+              "title": "Specifies the number of Nodes required in the cluster to cause early election of Flows. This allows the Nodes in the cluster to avoid having to wait a long time before starting processing if we reach at least this number of nodes in the cluster",
+              "default": ""
             }
-          },
-          "zookeeper": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#zookeeper-properties",
-            "description": "NiFi depends on Apache ZooKeeper for determining which node in the cluster should play the role of Primary Node and which node should play the role of Cluster Coordinator. These properties must be configured in order for NiFi to join a cluster",
-            "properties": {
-              "connect_string": {
-                "type": "string",
-                "title": "The Connect String that is needed to connect to Apache ZooKeeper. This is a comma-separated list of hostname:port pairs",
-                "default": "zk-1.zk:2181,zk-2.zk:2181,zk-3.zk:2181,zk-4.zk:2181,zk-5.zk:2181"
-              },
-              "connect_timeout": {
-                "type": "string",
-                "title": "How long to wait when connecting to ZooKeeper before considering the connection a failure",
-                "default": "3 secs"
-              },
-              "session_timeout": {
-                "type": "string",
-                "title": "How long to wait after losing a connection to ZooKeeper before the session is expired",
-                "default": "3 secs"
-              },
-              "root_node": {
-                "type": "string",
-                "title": "The root ZNode that should be used in ZooKeeper",
-                "default": "/nifi"
-              }
+          }
+        },
+        "zookeeper": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#zookeeper-properties",
+          "description": "NiFi depends on Apache ZooKeeper for determining which node in the cluster should play the role of Primary Node and which node should play the role of Cluster Coordinator. These properties must be configured in order for NiFi to join a cluster",
+          "properties": {
+            "connect_string": {
+              "type": "string",
+              "title": "The Connect String that is needed to connect to Apache ZooKeeper. This is a comma-separated list of hostname:port pairs",
+              "default": "zk-1.zk:2181,zk-2.zk:2181,zk-3.zk:2181,zk-4.zk:2181,zk-5.zk:2181"
+            },
+            "connect_timeout": {
+              "type": "string",
+              "title": "How long to wait when connecting to ZooKeeper before considering the connection a failure",
+              "default": "3 secs"
+            },
+            "session_timeout": {
+              "type": "string",
+              "title": "How long to wait after losing a connection to ZooKeeper before the session is expired",
+              "default": "3 secs"
+            },
+            "root_node": {
+              "type": "string",
+              "title": "The root ZNode that should be used in ZooKeeper",
+              "default": "/nifi"
             }
-          },
-          "kerberos": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#kerberos_properties",
-            "description": "Kerberos Configuration",
-            "properties": {
-              "krb5_file": {
-                "type": "string",
-                "title": "The location of the krb5 file, if used",
-                "default": ""
-              },
-              "service_principal": {
-                "type": "string",
-                "title": "The name of the NiFi Kerberos service principal",
-                "default": "nifi/nifi.example.com@EXAMPLE.COM"
-              },
-              "service_keytab_location": {
-                "type": "string",
-                "title": "The file path of the NiFi Kerberos keytab",
-                "default": ""
-              },
-              "spnego_principal": {
-                "type": "string",
-                "title": "The name of the NiFi Kerberos service principal",
-                "default": "HTTP/nifi.example.com@EXAMPLE.COM"
-              },
-              "spnego_keytab_location": {
-                "type": "string",
-                "title": "The file path of the NiFi Kerberos keytab",
-                "default": ""
-              },
-              "spnego_authentication_expiration": {
-                "type": "string",
-                "title": "The expiration duration of a successful Kerberos user authentication",
-                "default": "12 hours"
-              }
+          }
+        },
+        "kerberos": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#kerberos_properties",
+          "description": "Kerberos Configuration",
+          "properties": {
+            "krb5_file": {
+              "type": "string",
+              "title": "The location of the krb5 file, if used",
+              "default": ""
+            },
+            "service_principal": {
+              "type": "string",
+              "title": "The name of the NiFi Kerberos service principal",
+              "default": "nifi/nifi.example.com@EXAMPLE.COM"
+            },
+            "service_keytab_location": {
+              "type": "string",
+              "title": "The file path of the NiFi Kerberos keytab",
+              "default": ""
+            },
+            "spnego_principal": {
+              "type": "string",
+              "title": "The name of the NiFi Kerberos service principal",
+              "default": "HTTP/nifi.example.com@EXAMPLE.COM"
+            },
+            "spnego_keytab_location": {
+              "type": "string",
+              "title": "The file path of the NiFi Kerberos keytab",
+              "default": ""
+            },
+            "spnego_authentication_expiration": {
+              "type": "string",
+              "title": "The expiration duration of a successful Kerberos user authentication",
+              "default": "12 hours"
             }
-          },
-          "custom": {
-            "type": "object",
-            "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#custom_properties",
-            "description": "To configure custom properties for use with NiFi’s Expression Language",
-            "properties": {
-              "variable_registry_properties": {
-                "type": "string",
-                "title": "This is a comma-separated list of file location paths for one or more custom property files",
-                "default": ""
-              }
+          }
+        },
+        "custom": {
+          "type": "object",
+          "id": "https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#custom_properties",
+          "description": "To configure custom properties for use with NiFi’s Expression Language",
+          "properties": {
+            "variable_registry_properties": {
+              "type": "string",
+              "title": "This is a comma-separated list of file location paths for one or more custom property files",
+              "default": ""
             }
           }
         }

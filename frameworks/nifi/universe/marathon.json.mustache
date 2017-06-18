@@ -44,26 +44,29 @@
     "NODE_DISK": "{{node.disk}}",
     "NODE_DISK_TYPE": "{{node.disk_type}}",
 
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_FILE": "{{nifi.flow_configuration_file}}",
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_ENABLED": "{{nifi.flow_configuration_archive_enabled}}",
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_DIR": "{{nifi.flow_configuration_archive_dir}}",
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_TIME": "{{nifi.flow_configuration_archive_max_time}}",
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_STORAGE": "{{nifi.flow_configuration_archive_max_storage}}",
-    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_COUNT": "{{nifi.flow_configuration_archive_max_count}}",
-    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_AUTORESUMESTATE": "{{nifi.flowcontroller_auto_resume_state}}",
-    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_GRACEFUL_SHUTDOWN_PERIOD": "{{nifi.flowcontroller_graceful_shutdown_period}}",
-    "TASKCFG_ALL_NIFI_FLOWSERVICE_WRITEDELAY_INTERVAL": "{{nifi.flowservice_writedelay_interval}}",
-    "TASKCFG_ALL_NIFI_ADMINISTRATIVE_YIELD_DURATION": "{{nifi.administrative_yield.duration}}",
-    "TASKCFG_ALL_NIFI_BORED_YIELD_DURATION": "{{nifi.bored_yield_duration}}",
-    "TASKCFG_ALL_NIFI_AUTHORIZER_CONFIGURATION_FILE": "{{nifi.authorizer_configuration_file}}",
-    "TASKCFG_ALL_NIFI_LOGIN_IDENTITY_PROVIDER_CONFIGURATION_FILE": "{{nifi.login_identity_provider_configuration_file}}",
-    "TASKCFG_ALL_NIFI_TEMPLATES_DIRECTORY": "{{nifi.templates_directory}}",
-    "TASKCFG_ALL_NIFI_UI_BANNER_TEXT": "{{nifi.ui_banner_text}}",
-    "TASKCFG_ALL_NIFI_UI_AUTOREFRESH_INTERVAL": "{{nifi.ui_autorefresh_interval}}",
-    "TASKCFG_ALL_NIFI_NAR_LIBRARY_DIRECTORY": "{{nifi.nar_library_directory}}",
-    "TASKCFG_ALL_NIFI_NAR_WORKING_DIRECTORY": "{{nifi.nar_working_directory}}",
-    "TASKCFG_ALL_NIFI_DOCUMENTATION_WORKING_DIRECTORY": "{{nifi.documentation_working_directory}}",
-    "TASKCFG_ALL_NIFI_PROCESSOR_SCHEDULING_TIMEOUT": "{{nifi.processor_scheduling_timeout}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_FILE": "{{nifi.core.flow_configuration_file}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_ENABLED": "{{nifi.core.flow_configuration_archive_enabled}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_DIR": "{{nifi.core.flow_configuration_archive_dir}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_TIME": "{{nifi.core.flow_configuration_archive_max_time}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_STORAGE": "{{nifi.core.flow_configuration_archive_max_storage}}",
+    "TASKCFG_ALL_NIFI_FLOW_CONFIGURATION_ARCHIVE_MAX_COUNT": "{{nifi.core.flow_configuration_archive_max_count}}",
+    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_AUTORESUMESTATE": "{{nifi.core.flowcontroller_auto_resume_state}}",
+    "TASKCFG_ALL_NIFI_FLOWCONTROLLER_GRACEFUL_SHUTDOWN_PERIOD": "{{nifi.core.flowcontroller_graceful_shutdown_period}}",
+    "TASKCFG_ALL_NIFI_FLOWSERVICE_WRITEDELAY_INTERVAL": "{{nifi.core.flowservice_writedelay_interval}}",
+
+    "TASKCFG_ALL_NIFI_ADMINISTRATIVE_YIELD_DURATION": "{{nifi.core.administrative_yield_duration}}",
+    "TASKCFG_ALL_NIFI_BORED_YIELD_DURATION": "{{nifi.core.bored_yield_duration}}",
+
+    "TASKCFG_ALL_NIFI_AUTHORIZER_CONFIGURATION_FILE": "{{nifi.core.authorizer_configuration_file}}",
+    "TASKCFG_ALL_NIFI_LOGIN_IDENTITY_PROVIDER_CONFIGURATION_FILE": "{{nifi.core.login_identity_provider_configuration_file}}",
+
+    "TASKCFG_ALL_NIFI_TEMPLATES_DIRECTORY": "{{nifi.core.templates_directory}}",
+    "TASKCFG_ALL_NIFI_UI_BANNER_TEXT": "{{nifi.core.ui_banner_text}}",
+    "TASKCFG_ALL_NIFI_UI_AUTOREFRESH_INTERVAL": "{{nifi.core.ui_autorefresh_interval}}",
+    "TASKCFG_ALL_NIFI_NAR_LIBRARY_DIRECTORY": "{{nifi.core.nar_library_directory}}",
+    "TASKCFG_ALL_NIFI_NAR_WORKING_DIRECTORY": "{{nifi.core.nar_working_directory}}",
+    "TASKCFG_ALL_NIFI_DOCUMENTATION_WORKING_DIRECTORY": "{{nifi.core.documentation_working_directory}}",
+    "TASKCFG_ALL_NIFI_PROCESSOR_SCHEDULING_TIMEOUT": "{{nifi.core.processor_scheduling_timeout}}",
 
     "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_CONFIGURATION_FILE": "{{nifi.state.management_configuration_file}}",
     "TASKCFG_ALL_NIFI_STATE_MANAGEMENT_PROVIDER_LOCAL": "{{nifi.state.management_provider_local}}",
@@ -80,7 +83,7 @@
     "TASKCFG_ALL_NIFI_FLOWFILE_REPOSITORY_ALWAYS_SYNC": "{{nifi.flowfile.repository_always_sync}}",
 
     "TASKCFG_ALL_NIFI_SWAP_MANAGER_IMPLEMENTATION": "{{nifi.swap.manager_implementation}}",
-    "TASKCFG_ALL_NIFI_QUEUE_SWAP_THRESHOLD": "{{nifi.queue.swap_threshold}}",
+    "TASKCFG_ALL_NIFI_QUEUE_SWAP_THRESHOLD": "{{nifi.swap.queue_swap_threshold}}",
     "TASKCFG_ALL_NIFI_SWAP_IN_PERIOD": "{{nifi.swap.in_period}}",
     "TASKCFG_ALL_NIFI_SWAP_IN_THREADS": "{{nifi.swap.in_threads}}",
     "TASKCFG_ALL_NIFI_SWAP_OUT_PERIOD": "{{nifi.swap.out_period}}",
@@ -96,8 +99,8 @@
     "TASKCFG_ALL_NIFI_CONTENT_REPOSITORY_ALWAYS_SYNC": "{{nifi.content.repository_always_sync}}",
     "TASKCFG_ALL_NIFI_CONTENT_VIEWER_URL": "{{nifi.content.viewer_url}}",
 
-    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_MAX_SIZE": {{nifi.volatile.content_repository_max_size}}",
-    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_BLOCK_SIZE": {{nifi.volatile.content_repository_block_size}}",
+    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_MAX_SIZE": "{{nifi.volatile.content_repository_max_size}}",
+    "TASKCFG_ALL_NIFI_VOLATILE_CONTENT_REPOSITORY_BLOCK_SIZE": "{{nifi.volatile.content_repository_block_size}}",
 
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_IMPLEMENTATION": "{{nifi.provenance.repository_implementation}}",
 
@@ -105,7 +108,7 @@
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_TIME": "{{nifi.provenance.repository_max_storage_time}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_SIZE": "{{nifi.provenance.repository_max_storage_size}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ROLLOVER_TIME": "{{nifi.provenance.repository_rollover_time}}",
-    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ROLLOVER_SIZE": "{{nifi.provenance.repository_rollover_size}}"
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_ROLLOVER_SIZE": "{{nifi.provenance.repository_rollover_size}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_QUERY_THREADS": "{{nifi.provenance.repository_query_threads}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_INDEX_THREADS": "{{nifi.provenance.repository_index_threads}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_COMPRESS_ON_ROLLOVER": "{{nifi.provenance.repository_compress_on_rollover}}",
@@ -118,7 +121,7 @@
 
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_BUFFER_SIZE": "{{nifi.provenance.repository_buffer_size}}",
 
-    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_CONCURRENT_MERGE_THREADS": "{{nifi.provenance.repository_concurrent_merge_threads}}"
+    "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_CONCURRENT_MERGE_THREADS": "{{nifi.provenance.repository_concurrent_merge_threads}}",
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_WARM_CACHE_FREQUENCY": "{{nifi.provenance.repository_warm_cache_frequency}}",
 
     "TASKCFG_ALL_NIFI_PROVENANCE_REPOSITORY_DEBUG_FREQUENCY": "{{nifi.provenance.repository_debug_frequency}}",
@@ -154,7 +157,7 @@
     "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_PROVIDER": "{{nifi.security.sensitive_props_provider}}",
     "TASKCFG_ALL_NIFI_SENSITIVE_PROPS_ADDITIONAL_KEYS": "{{nifi.security.sensitive_props_additional_keys}}",
 
-    "TASKCFG_ALL_NIFI_SECURITY_KEYSTORE" "{{nifi.security.keystore_path}}",:
+    "TASKCFG_ALL_NIFI_SECURITY_KEYSTORE": "{{nifi.security.keystore_path}}",
     "TASKCFG_ALL_NIFI_SECURITY_KEYSTORETYPE": "{{nifi.security.keystore_type}}",
     "TASKCFG_ALL_NIFI_SECURITY_KEYSTOREPASSWD": "{{nifi.security.keystore_password}}",
     "TASKCFG_ALL_NIFI_SECURITY_KEYPASSWD": "{{nifi.security.keystore_password}}",
@@ -169,17 +172,17 @@
     "TASKCFG_ALL_NIFI_SECURITY_OCSP_RESPONDER_URL": "{{nifi.security.ocsp_responder_url}}",
     "TASKCFG_ALL_NIFI_SECURITY_OCSP_RESPONDER_CERTIFICATE": "{{nifi.security.ocsp_responder_certificate}}",
 
-    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_DN": "{{nifi.identity_mapping_pattern_dn}}",
-    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_DN": "{{nifi.identity_mapping_value_dn}}",
-    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_KERB": "{{nifi.identity_mapping_pattern_kerb}}",
-    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_KERB": "{{nifi.identity_mapping_value_kerb}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_DN": "{{nifi.identity.mapping_pattern_dn}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_DN": "{{nifi.identity.mapping_value_dn}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_PATTERN_KERB": "{{nifi.identity.mapping_pattern_kerb}}",
+    "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_KERB": "{{nifi.identity.mapping_value_kerb}}",
 
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL": "{{nifi.cluster.protocol_heartbeat_interval}}",
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_IS_SECURE": "{{nifi.cluster.protocol_is_secure}}",
     "TASKCFG_ALL_NIFI_CLUSTER_IS_NODE": "{{nifi.cluster.is_node}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_ADDRESS": "{{nifi.cluster.node_address}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{nifi.cluster.node_protocol_port}}",
-    "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_THREADS": "{{nifi.cluster.node_protocol_threads}",
+    "TASKCFG_ALL_NIFI_CLUSTER_NODE_PROTOCOL_THREADS": "{{nifi.cluster.node_protocol_threads}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_EVENT_HISTORY_SIZE": "{{nifi.cluster.node_event_history_size}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT": "{{nifi.cluster.node_connection_timeout}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_READ_TIMEOUT": "{{nifi.cluster.node_read_timeout}}",
