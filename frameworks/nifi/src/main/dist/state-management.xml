@@ -58,9 +58,9 @@
     <cluster-provider>
         <id>zk-provider</id>
         <class>org.apache.nifi.controller.state.providers.zookeeper.ZooKeeperStateProvider</class>
-        <property name="Connect String"></property>
-        <property name="Root Node">/nifi</property>
-        <property name="Session Timeout">10 seconds</property>
+        <property name="Connect String">{{NIFI_ZOOKEEPER_CONNECT_STRING}}</property>
+        <property name="Root Node">{{NIFI_ZOOKEEPER_ROOT_NODE}}</property>
+        <property name="Session Timeout">{{NIFI_ZOOKEEPER_SESSION_TIMEOUT}}</property>
         <property name="Access Control">Open</property>
     </cluster-provider>
 </stateManagement>

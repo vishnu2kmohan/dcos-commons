@@ -1,18 +1,19 @@
 {
-  "name": "nifi",
-  "description": "Apache NiFi running on DC/OS",
-  "minDcosReleaseVersion": "1.9",
-  "framework": true,
-  "maintainer": "support+nifi@mesosphere.io",
   "packagingVersion": "3.0",
-  "selected": false,
-  "preInstallNotes": "WARNING! The DC/OS Apache NiFi Service is currently in Alpha!\n\n\tThere may be bugs, incomplete features, incorrect documentation, or other discrepancies.",
-  "postInstallNotes": "The DC/OS Apache NiFi is being installed!\n\n\tDocumentation: http://docs.mesosphere.com/service-docs\n\tIssues: http://jira.dcos.io",
-  "postUninstallNotes": "The DC/OS Apache NiFi has been uninstalled.",
+  "name": "nifi",
+  "version": "0.0.1-1.3.0",
   "tags": [
     "nifi",
     "etl",
     "workflow"
   ],
-  "version": "0.0.1-1.3.0"
+  "maintainer": "support+nifi@mesosphere.io",
+  "description": "Apache NiFi running on DC/OS",
+  "framework": true,
+  "minDcosReleaseVersion": "1.9",
+  "scm": "https://github.com/vishnu2kmohan/dcos-commons.git",
+  "website": "https://github.com/vishnu2kmohan/dcos-commons",
+  "preInstallNotes": "WARNING! The DC/OS Apache NiFi Service is currently in Alpha!\n\n\tThere may be bugs, incomplete features, incorrect documentation, or other discrepancies.",
+  "postInstallNotes": "The DC/OS Apache NiFi is being installed!\n\n\tDocumentation: http://docs.mesosphere.com/service-docs\n\tIssues: http://jira.dcos.io",
+  "postUninstallNotes": "The DC/OS Apache NiFi has been uninstalled."
 }

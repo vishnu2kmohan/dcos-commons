@@ -7,7 +7,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     public ServiceSpecTest() {
         super("FRAMEWORK_NAME", "nifi",
-              "FRAMEWORK_PRINCIPAL", "dcos-service-nifi",
+              "FRAMEWORK_PRINCIPAL", "nifi-principal",
               "FRAMEWORK_USER", "nobody",
 
               "JAVA_URI", "",
@@ -16,9 +16,20 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
               "EXECUTOR_URI", "",
               "NIFI_URI", "",
 
+              "CONFIG_TEMPLATE_PATH", "nifi-scheduler",
+
               "NODE_COUNT", "3",
               "NODE_CPUS", "1",
               "NODE_MEM", "2048",
+              "NODE_PORT", "0",
+
+              "NODE_VIP_PREFIX", "nifi",
+              "NODE_VIP_PORT", "8080",
+
+              "NODE_RLIMIT_NOFILE_SOFT", "50000",
+              "NODE_RLIMIT_NOFILE_HARD", "50000",
+              "NODE_RLIMIT_NPROC_SOFT", "10000",
+              "NODE_RLIMIT_NPROC_HARD", "10000",
 
               "NODE_PLACEMENT", "hostname:UNIQUE",
 
@@ -39,6 +50,27 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
               "NODE_PROVENANCE_REPOSITORY_DISK_SIZE", "1000",
 
               "NIFI_VERSION", "1.3.0",
+
+              "LDAP_AUTHENTICATION_STRATEGY", "START_TLS",
+              "LDAP_MANAGER_DN", "user@example.com",
+              "LDAP_MANAGER_PASSWORD", "password",
+              "LDAP_TLS_KEYSTORE_PATH", "./conf/keystore.jks",
+              "LDAP_TLS_KEYSTORE_PASSWORD", "keystore-password-changeit",
+              "LDAP_TLS_KEYSTORE_TYPE", "PKCS12",
+              "LDAP_TLS_TRUSTSTORE_PATH", "./conf/truststore.jks",
+              "LDAP_TLS_TRUSTSTORE_PASSWORD", "truststore-password-changeit",
+              "LDAP_TLS_TRUSTSTORE_TYPE", "PKCS12",
+              "LDAP_TLS_CLIENT_AUTH", "REQUIRED",
+              "LDAP_TLS_PROTOCOL", "TLSv1.2",
+              "LDAP_TLS_SHUTDOWN_GRACEFULLY", "false",
+              "LDAP_REFERRAL_STRATEGY", "FOLLOW",
+              "LDAP_CONNECT_TIMEOUT", "10 secs",
+              "LDAP_READ_TIMEOUT", "10 secs",
+              "LDAP_URL", "ldap://<hostname>:<port>",
+              "LDAP_USER_SEARCH_BASE", "CN=Users,DC=example,DC=com",
+              "LDAP_USER_SEARCH_FILTER", "sAMAccountName={0}",
+              "LDAP_IDENTITY_STRATEGY", "USE_DN",
+              "LDAP_AUTHENTICATION_EXPIRATION", "12 hours",
 
               "NIFI_FLOW_CONFIGURATION_FILE", "./conf/flow.xml.gz",
               "NIFI_FLOW_CONFIGURATION_ARCHIVE_ENABLED", "true",
@@ -193,7 +225,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
               "NIFI_ZOOKEEPER_SESSION_TIMEOUT", "3 secs",
               "NIFI_ZOOKEEPER_ROOT_NODE", "/nifi",
 
-              "NIFI_KERBEROS_KRB5_FILE", "",
+              "NIFI_KERBEROS_DEFAULT_REALM", "NIFI.APACHE.ORG",
+              "NIFI_KERBEROS_AUTHENTICATION_EXPIRATION", "12 hours",
+              "NIFI_KERBEROS_KRB5_FILE", "/etc/krb5.conf",
               "NIFI_KERBEROS_SERVICE_PRINCIPAL", "",
               "NIFI_KERBEROS_SERVICE_KEYTAB_LOCATION", "",
               "NIFI_KERBEROS_SPNEGO_PRINCIPAL", "",
