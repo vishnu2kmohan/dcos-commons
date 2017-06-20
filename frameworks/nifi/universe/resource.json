@@ -3,7 +3,7 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "bootstrap-tar-gz": "{{artifact-dir}}/bootstrap.tar.gz",
       "scheduler-zip": "{{artifact-dir}}/nifi-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "nifi-tar-gz" : "https://s3.amazonaws.com/vishnu-mohan/nifi/nifi-1.3.0-bin.tar.gz"

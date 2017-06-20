@@ -1069,6 +1069,12 @@
         "repository_rollover_time": {
           "type": "string",
           "title": "Repository Rollover Time",
+          "description": "The amount of time to wait before rolling over the latest data provenance information so that it is available in the User Interface",
+          "default": "30 secs"
+        },
+        "repository_rollover_size": {
+          "type": "string",
+          "title": "Repository Rollover Size",
           "description": "The amount of information to roll over at a time",
           "default": "100 MB"
         },
