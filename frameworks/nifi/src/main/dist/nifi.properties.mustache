@@ -50,12 +50,12 @@ nifi.state.management.embedded.zookeeper.start={{NIFI_STATE_MANAGEMENT_EMBEDDED_
 nifi.state.management.embedded.zookeeper.properties={{NIFI_STATE_MANAGEMENT_EMBEDDED_ZOOKEEPER_PROPERTIES}}
 
 # H2 Properties
-nifi.database.directory={{NIFI_DATABASE_DIRECTORY}}
+nifi.database.directory={{MESOS_SANDBOX}}/{{NIFI_DATABASE_DIRECTORY}}
 nifi.h2.url.append={{NIFI_H2_URL_APPEND}}
 
 # FlowFile Repository Properties
 nifi.flowfile.repository.implementation={{NIFI_FLOWFILE_REPOSITORY_IMPLEMENTATION}}
-nifi.flowfile.repository.directory={{NIFI_FLOWFILE_REPOSITORY_DIRECTORY}}
+nifi.flowfile.repository.directory={{MESOS_SANDBOX}}/{{NIFI_FLOWFILE_REPOSITORY_DIRECTORY}}
 nifi.flowfile.repository.partitions={{NIFI_FLOWFILE_REPOSITORY_PARTITIONS}}
 nifi.flowfile.repository.checkpoint.interval={{NIFI_FLOWFILE_REPOSITORY_CHECKPOINT_INTERVAL}}
 nifi.flowfile.repository.always.sync={{NIFI_FLOWFILE_REPOSITORY_ALWAYS_SYNC}}
@@ -74,7 +74,7 @@ nifi.content.repository.implementation={{NIFI_CONTENT_REPOSITORY_IMPLEMENTATION}
 # File System Content Repository Properties
 nifi.content.claim.max.appendable.size={{NIFI_CONTENT_CLAIM_MAX_APPENDABLE_SIZE}}
 nifi.content.claim.max.flow.files={{NIFI_CONTENT_CLAIM_MAX_FLOW_FILES}}
-nifi.content.repository.directory.default={{NIFI_CONTENT_REPOSITORY_DIRECTORY_DEFAULT}}
+nifi.content.repository.directory.default={{MESOS_SANDBOX}}/{{NIFI_CONTENT_REPOSITORY_DIRECTORY_DEFAULT}}
 nifi.content.repository.archive.max.retention.period={{NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_RETENTION_PERIOD}}
 nifi.content.repository.archive.max.usage.percentage={{NIFI_CONTENT_REPOSITORY_ARCHIVE_MAX_USAGE_PERCENTAGE}}
 nifi.content.repository.archive.enabled={{NIFI_CONTENT_REPOSITORY_ARCHIVE_ENABLED}}
@@ -89,7 +89,7 @@ nifi.volatile.content.repository.block.size={{NIFI_VOLATILE_CONTENT_REPOSITORY_B
 nifi.provenance.repository.implementation={{NIFI_PROVENANCE_REPOSITORY_IMPLEMENTATION}}
 
 # Persistent Provenance Repository Properties
-nifi.provenance.repository.directory.default={{NIFI_PROVENANCE_REPOSITORY_DIRECTORY_DEFAULT}}
+nifi.provenance.repository.directory.default={{MESOS_SANDBOX}}/{{NIFI_PROVENANCE_REPOSITORY_DIRECTORY_DEFAULT}}
 nifi.provenance.repository.max.storage.time={{NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_TIME}}
 nifi.provenance.repository.max.storage.size={{NIFI_PROVENANCE_REPOSITORY_MAX_STORAGE_SIZE}}
 nifi.provenance.repository.rollover.time={{NIFI_PROVENANCE_REPOSITORY_ROLLOVER_TIME}}
@@ -125,7 +125,7 @@ nifi.components.status.repository.buffer.size={{NIFI_COMPONENTS_STATUS_REPOSITOR
 nifi.components.status.snapshot.frequency={{NIFI_COMPONENTS_STATUS_SNAPSHOT_FREQUENCY}}
 
 # Site to Site properties
-nifi.remote.input.host={{NIFI_REMOTE_INPUT_HOST}}
+nifi.remote.input.host={{TASK_NAME}}.{{FRAMEWORK_HOST}}
 nifi.remote.input.secure={{NIFI_REMOTE_INPUT_SECURE}}
 nifi.remote.input.socket.port={{NIFI_REMOTE_INPUT_SOCKET_PORT}}
 nifi.remote.input.http.enabled={{NIFI_REMOTE_INPUT_HTTP_ENABLED}}
@@ -133,12 +133,16 @@ nifi.remote.input.http.transaction.ttl={{NIFI_REMOTE_INPUT_HTTP_TRANSACTION_TTL}
 
 # Web Properties
 nifi.web.war.directory={{NIFI_WEB_WAR_DIRECTORY}}
-nifi.web.http.host={{NIFI_WEB_HTTP_HOST}}
-nifi.web.http.port={{NIFI_WEB_HTTP_PORT}}
+{{#NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+nifi.web.http.host={{TASK_NAME}}.{{FRAMEWORK_HOST}}
+nifi.web.http.port={{PORT_WEB}}
 nifi.web.http.network.interface.default={{NIFI_WEB_HTTP_NETWORK_INTERFACE_DEFAULT}}
-nifi.web.https.host={{NIFI_WEB_HTTPS_HOST}}
-nifi.web.https.port={{NIFI_WEB_HTTPS_PORT}}
+{{/NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+{{^NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+nifi.web.https.host={{TASK_NAME}}.{{FRAMEWORK_HOST}}
+nifi.web.https.port={{PORT_WEB}}
 nifi.web.https.network.interface.default={{NIFI_WEB_HTTPS_NETWORK_INTERFACE_DEFAULT}}
+{{/NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
 nifi.web.jetty.working.directory={{NIFI_WEB_JETTY_WORKING_DIRECTORY}}
 nifi.web.jetty.threads={{NIFI_WEB_JETTY_THREADS}}
 
@@ -174,8 +178,8 @@ nifi.cluster.protocol.is.secure={{NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
 
 # Cluster Node Properties
 nifi.cluster.is.node={{NIFI_CLUSTER_IS_NODE}}
-nifi.cluster.node.address={{NIFI_CLUSTER_NODE_ADDRESS}}
-nifi.cluster.node.protocol.port={{NIFI_CLUSTER_NODE_PROTOCOL_PORT}}
+nifi.cluster.node.address={{TASK_NAME}}.{{FRAMEWORK_HOST}}
+nifi.cluster.node.protocol.port={{PORT_PROTOCOL}}
 nifi.cluster.node.protocol.threads={{NIFI_CLUSTER_NODE_PROTOCOL_THREADS}}
 nifi.cluster.node.event.history.size={{NIFI_CLUSTER_NODE_EVENT_HISTORY_SIZE}}
 nifi.cluster.node.connection.timeout={{NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT}}
@@ -188,13 +192,13 @@ nifi.cluster.flow.election.max.candidates={{NIFI_CLUSTER_FLOW_ELECTION_MAX_CANDI
 nifi.zookeeper.connect.string={{NIFI_ZOOKEEPER_CONNECT_STRING}}
 nifi.zookeeper.connect.timeout={{NIFI_ZOOKEEPER_CONNECT_TIMEOUT}}
 nifi.zookeeper.session.timeout={{NIFI_ZOOKEEPER_SESSION_TIMEOUT}}
-nifi.zookeeper.root.node={{NIFI_ZOOKEEPER_ROOT_NODE}}
+nifi.zookeeper.root.node=/{{FRAMEWORK_NAME}}
 
 # Kerberos Properties
 nifi.kerberos.krb5.file={{NIFI_KERBEROS_KRB5_FILE}}
-nifi.kerberos.service.principal={{NIFI_KERBEROS_SERVICE_PRINCIPAL}}
+nifi.kerberos.service.principal=nifi/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{NIFI_KERBEROS_DEFAULT_REALM}}
 nifi.kerberos.service.keytab.location={{NIFI_KERBEROS_SERVICE_KEYTAB_LOCATION}}
-nifi.kerberos.spnego.principal={{NIFI_KERBEROS_SPNEGO_PRINCIPAL}}
+nifi.kerberos.spnego.principal=HTTP/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{NIFI_KERBEROS_DEFAULT_REALM}}
 nifi.kerberos.spnego.keytab.location={{NIFI_KERBEROS_SPNEGO_KEYTAB_LOCATION}}
 nifi.kerberos.spnego.authentication.expiration={{NIFI_KERBEROS_SPNEGO_AUTHENTICATION_EXPIRATION}}
 

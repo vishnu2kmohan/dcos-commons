@@ -211,7 +211,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
               "NIFI_CLUSTER_IS_NODE", "true",
               "NIFI_CLUSTER_NODE_ADDRESS", "",
-              "NIFI_CLUSTER_NODE_PROTOCOL_PORT", "",
+              "NIFI_CLUSTER_NODE_PROTOCOL_PORT", "0",
               "NIFI_CLUSTER_NODE_PROTOCOL_THREADS", "10",
               "NIFI_CLUSTER_NODE_EVENT_HISTORY_SIZE", "25",
               "NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT", "5 secs",

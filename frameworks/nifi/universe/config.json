@@ -351,7 +351,7 @@
           "type": "string",
           "title": "LDAP URL",
           "description": "Space-separated list of URLs of the LDAP servers",
-          "default": "ldap://<hostname>:<port>"
+          "default": "ldap://ldap.example.com:389"
         },
         "user_search_base": {
           "type": "string",
@@ -548,11 +548,17 @@
           "description": "Set this to true if the instance is a node in a cluster",
           "default": true
         },
-        "node_protocol_port": {
+        "node_address": {
           "type": "string",
+          "title": "Node Address",
+          "description": "Set this to the fully qualified hostname of the node. If left blank, it defaults to \"localhost\"",
+          "default": ""
+        },
+        "node_protocol_port": {
+          "type": "integer",
           "title": "Node Protocol Port",
           "description": "The node’s protocol port",
-          "default": ""
+          "default": 0
         },
         "node_protocol_threads": {
           "type": "integer",

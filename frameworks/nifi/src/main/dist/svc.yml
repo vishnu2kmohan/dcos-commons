@@ -23,20 +23,18 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: "./bootstrap && sleep $SLEEP_DURATION"
+        cmd: "./bootstrap && /opt/mesosphere/bin/dcos-path/dcos-shell python ./config-templates/setup-authorizers-xml.py && sleep $SLEEP_DURATION"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         ports:
-          http:
+          web:
             port: {{NODE_PORT}}
             vip:
               prefix: {{NODE_VIP_PREFIX}}
               port: {{NODE_VIP_PORT}}
+          protocol:
+            port: {{NIFI_CLUSTER_NODE_PROTOCOL_PORT}}
         volumes:
-          content-repository:
-            path: {{NODE_CONTENT_REPOSITORY_DISK_PATH}}
-            type: {{NODE_CONTENT_REPOSITORY_DISK_TYPE}}
-            size: {{NODE_CONTENT_REPOSITORY_DISK_SIZE}}
           database-repository:
             path: {{NODE_DATABASE_REPOSITORY_DISK_PATH}}
             type: {{NODE_DATABASE_REPOSITORY_DISK_TYPE}}
@@ -49,12 +47,22 @@ pods:
             path: {{NODE_PROVENANCE_REPOSITORY_DISK_PATH}}
             type: {{NODE_PROVENANCE_REPOSITORY_DISK_TYPE}}
             size: {{NODE_PROVENANCE_REPOSITORY_DISK_SIZE}}
+          content-repository:
+            path: {{NODE_CONTENT_REPOSITORY_DISK_PATH}}
+            type: {{NODE_CONTENT_REPOSITORY_DISK_TYPE}}
+            size: {{NODE_CONTENT_REPOSITORY_DISK_SIZE}}
         configs:
           nifi.properties:
             template: {{CONFIG_TEMPLATE_PATH}}/nifi.properties.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/nifi.properties
+          authorizers.xml:
+            template: {{CONFIG_TEMPLATE_PATH}}/authorizers.xml.mustache
+            dest: nifi-{{NIFI_VERSION}}/conf/authorizers.xml
           login-identity-providers.xml:
             template: {{CONFIG_TEMPLATE_PATH}}/login-identity-providers.xml.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/login-identity-providers.xml
+          setup-authorizers-xml.py:
+            template: {{CONFIG_TEMPLATE_PATH}}/setup-authorizers-xml.py
+            dest: nifi-{{NIFI_VERSION}}/conf/setup-authorizers-xml.py
         env:
           SLEEP_DURATION: 1000

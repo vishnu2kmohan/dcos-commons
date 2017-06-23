@@ -43,6 +43,7 @@
     "NODE_CPUS": "{{node.cpus}}",
     "NODE_MEM": "{{node.mem}}",
     "NODE_PORT": "{{node.port}}",
+    "NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{cluster.node_protocol_port}}",
 
     "NODE_VIP_PREFIX": "{{node.vip_prefix}}",
     "NODE_VIP_PORT": "{{node.vip_port}}",
@@ -55,9 +56,8 @@
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
 
     {{#service.virtual_network}}
-    "ENABLE_VIRTUAL_NETWORK": "yes",
+    "ENABLE_VIRTUAL_NETWORK": "true",
     {{/service.virtual_network}}
-
 
     "NODE_CONTENT_REPOSITORY_DISK_PATH": "{{node.content_repository_disk_path}}",
     "NODE_CONTENT_REPOSITORY_DISK_TYPE": "{{node.content_repository_disk_type}}",
@@ -75,6 +75,12 @@
     "NODE_PROVENANCE_REPOSITORY_DISK_TYPE": "{{node.provenance_repository_disk_type}}",
     "NODE_PROVENANCE_REPOSITORY_DISK_SIZE": "{{node.provenance_repository_disk_size}}",
 
+    "TASKCFG_ALL_NIFI_VERSION": "{{service.version}}",
+
+    "TASKCFG_ALL_NODE_COUNT": "{{node.count}}",
+    "TASKCFG_ALL_NODE_CPUS": "{{node.cpus}}",
+    "TASKCFG_ALL_NODE_MEM": "{{node.mem}}",
+
     "TASKCFG_ALL_LDAP_AUTHENTICATION_STRATEGY": "{{ldap.authentication_strategy}}",
     "TASKCFG_ALL_LDAP_MANAGER_DN": "{{ldap.manager_dn}}",
     "TASKCFG_ALL_LDAP_MANAGER_PASSWORD": "{{ldap.manager_password}}",
@@ -88,7 +94,7 @@
     "TASKCFG_ALL_LDAP_TLS_PROTOCOL": "{{ldap.tls_protocol}}",
     "TASKCFG_ALL_LDAP_TLS_SHUTDOWN_GRACEFULLY": "{{ldap.tls_shutdown_gracefully}}",
     "TASKCFG_ALL_LDAP_REFERRAL_STRATEGY": "{{ldap.referral_strategy}}",
-    "TASKCFG_ALL_LDAP_CONNECT_TIMEOUT": "{{ldap.connect_timetou}}",
+    "TASKCFG_ALL_LDAP_CONNECT_TIMEOUT": "{{ldap.connect_timeout}}",
     "TASKCFG_ALL_LDAP_READ_TIMEOUT": "{{ldap.read_timeout}}",
     "TASKCFG_ALL_LDAP_URL": "{{ldap.url}}",
     "TASKCFG_ALL_LDAP_USER_SEARCH_BASE": "{{ldap.user_search_base}}",
