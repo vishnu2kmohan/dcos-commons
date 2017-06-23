@@ -10,6 +10,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
               "FRAMEWORK_PRINCIPAL", "nifi-principal",
               "FRAMEWORK_USER", "nobody",
 
+              "DEPLOY_STRATEGY", "parallel",
+              "UPDATE_STRATEGY", "parallel",
+              "REPLACE_STRATEGY", "parallel",
+
               "JAVA_URI", "",
               "LIBMESOS_URI", "",
               "BOOTSTRAP_URI", "",

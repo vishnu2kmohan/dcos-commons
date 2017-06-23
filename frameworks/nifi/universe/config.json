@@ -35,6 +35,24 @@
           "title": "DC/OS Service Account Credential Secret Name (Optional)",
           "description": "Path to the Secret to access the Service Account Credentials to use for DC/OS Service Authentication. This should be left empty unless service authentication is needed.",
           "default": ""
+        },
+        "deploy_strategy": {
+          "enum": ["serial", "parallel"],
+          "title": "Node Deploy Strategy",
+          "description": "Strategy to use for deploying NiFi nodes [serial, parallel]",
+          "default": "parallel"
+        },
+        "update_strategy": {
+          "enum": ["serial", "parallel"],
+          "title": "Node Update Strategy",
+          "description": "Strategy to use for updating NiFi nodes [serial, parallel]",
+          "default": "parallel"
+        },
+        "replace_strategy": {
+          "enum": ["serial", "parallel"],
+          "title": "Node Replace Strategy",
+          "description": "Strategy to use for replacing NiFi nodes [serial, parallel]",
+          "default": "parallel"
         }
       },
       "required": [
