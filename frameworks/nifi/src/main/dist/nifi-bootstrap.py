@@ -8,7 +8,7 @@ import os
 mesos_sandbox = os.getenv('MESOS_SANDBOX', '.')
 nifi_version = os.getenv('NIFI_VERSION', '1.3.0')
 nifi_node_count = os.getenv('NODE_COUNT', 3)
-nifi_authorizers_xml_file = '{}/nifi-{}/conf/authorizers.xml'.format(
+nifi_authorizers_xml_file = '{}/nifi-scheduler/authorizers.xml'.format(
         mesos_sandbox, 
         nifi_version)
 
