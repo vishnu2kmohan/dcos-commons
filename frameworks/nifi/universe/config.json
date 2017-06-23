@@ -51,7 +51,7 @@
           "type": "integer",
           "title": "NiFi Node Count",
           "description": "Number of NiFi nodes to run",
-          "default": 1
+          "default": 3
         },
         "cpus": {
           "type": "number",

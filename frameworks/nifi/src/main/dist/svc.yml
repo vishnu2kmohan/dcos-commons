@@ -19,11 +19,17 @@ pods:
         hard: {{NODE_RLIMIT_NPROC_HARD}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{NIFI_BOOTSTRAP_URI}}
       - {{NIFI_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "./bootstrap && /opt/mesosphere/bin/dcos-path/dcos-shell python ./config-templates/setup-authorizers-xml.py && sleep $SLEEP_DURATION"
+        cmd: >
+                chmod +x nifi-bootstrap &&
+                ./nifi-bootstrap &&
+                ./bootstrap &&
+                ./nifi-${NIFI_VERSION}/bin/nifi.sh start &&
+                tail -f ./nifi-${NIFI_VERSION}/logs/nifi-app.log
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         ports:
@@ -61,8 +67,5 @@ pods:
           login-identity-providers.xml:
             template: {{CONFIG_TEMPLATE_PATH}}/login-identity-providers.xml.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/login-identity-providers.xml
-          setup-authorizers-xml.py:
-            template: {{CONFIG_TEMPLATE_PATH}}/setup-authorizers-xml.py
-            dest: nifi-{{NIFI_VERSION}}/conf/setup-authorizers-xml.py
         env:
           SLEEP_DURATION: 1000
