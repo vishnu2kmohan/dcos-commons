@@ -24,10 +24,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: >
-                ./bootstrap &&
-                ./nifi-${NIFI_VERSION}/bin/nifi.sh start &&
-                tail -f ./nifi-${NIFI_VERSION}/logs/nifi-app.log
+        cmd: ./bootstrap && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         ports:

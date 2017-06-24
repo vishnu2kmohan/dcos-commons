@@ -5,7 +5,6 @@ from lxml import etree as ET
 import os
 
 
-
 DEFAULT_PATH_PREFIX='.'
 DEFAULT_NIFI_VERSION='1.3.0'
 DEFAULT_NODE_COUNT='1'
@@ -45,4 +44,3 @@ with open(nifi_authorizers_xml_file, 'w') as nifi_authorizer_xml:
     nifi_authorizer_xml.write(ET.tostring(root, 
         pretty_print=True, 
         encoding='unicode'))
-
