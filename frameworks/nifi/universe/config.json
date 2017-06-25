@@ -12,12 +12,6 @@
           "description": "The name of the DC/OS Apache NiFi service instance",
           "default": "nifi"
         },
-        "version": {
-          "type": "string",
-          "title": "Apache NiFi Version",
-          "description": "Apache NiFi Software Version",
-          "default": "1.3.0"
-        },
         "user": {
           "type": "string",
           "title": "Linux User (Execution Context)",
@@ -36,23 +30,50 @@
           "description": "Path to the Secret to access the Service Account Credentials to use for DC/OS Service Authentication. This should be left empty unless service authentication is needed.",
           "default": ""
         },
+        "zookeeper": {
+          "type": "string",
+          "title": "Framework Scheduler Zookeeper",
+          "description": "Custom zookeeper URL for storing scheduler state",
+          "default": "zk-1.zk:2181,zk-2.zk:2181,zk-3.zk:2181,zk-4.zk:2181,zk-5.zk:2181"
+        },
         "deploy_strategy": {
-          "enum": ["serial", "parallel"],
+          "enum": [
+            "serial",
+            "parallel",
+            "serial-canary",
+            "parallel-canary"
+          ],
           "title": "Node Deploy Strategy",
-          "description": "Strategy to use for deploying NiFi nodes [serial, parallel]",
+          "description": "Strategy to use for deploying NiFi nodes [serial, parallel, serial-canary, parallel-canary]",
           "default": "parallel"
         },
         "update_strategy": {
-          "enum": ["serial", "parallel"],
+          "enum": [
+            "serial",
+            "parallel",
+            "serial-canary",
+            "parallel-canary"
+          ],
           "title": "Node Update Strategy",
-          "description": "Strategy to use for updating NiFi nodes [serial, parallel]",
-          "default": "parallel"
+          "description": "Strategy to use for updating NiFi nodes [serial, parallel, serial-canary, parallel-canary]",
+          "default": "serial"
         },
         "replace_strategy": {
-          "enum": ["serial", "parallel"],
+          "enum": [
+            "serial",
+            "parallel",
+            "serial-canary",
+            "parallel-canary"
+          ],
           "title": "Node Replace Strategy",
-          "description": "Strategy to use for replacing NiFi nodes [serial, parallel]",
-          "default": "parallel"
+          "description": "Strategy to use for replacing NiFi nodes [serial, parallel, serial-canary, parallel-canary]",
+          "default": "serial"
+        },
+        "version": {
+          "type": "string",
+          "title": "Apache NiFi Version",
+          "description": "Apache NiFi Software Version",
+          "default": "1.3.0"
         }
       },
       "required": [
@@ -81,7 +102,7 @@
           "type": "integer",
           "title": "Memory size (MB)",
           "description": "NiFi Node Memory Requirements (in MB)",
-          "default": 2048
+          "default": 1024
         },
         "port": {
           "type": "integer",
@@ -615,10 +636,10 @@
           "default": "5 mins"
         },
         "flow_election_max_candidates": {
-          "type": "string",
+          "type": "integer",
           "title": "Flow Election Max Candidates",
           "description": "Specifies the number of Nodes required in the cluster to cause early election of Flows. This allows the Nodes in the cluster to avoid having to wait a long time before starting processing if we reach at least this number of nodes in the cluster",
-          "default": ""
+          "default": "3"
         }
       }
     },
@@ -859,7 +880,7 @@
         "management_provider_cluster": {
           "type": "string",
           "title": "Cluster State Management Provier",
-          "title": "The ID of the Cluster State Provider to use. This value must match the value of the id element of one of the cluster-provider elements in the state-management.xml file",
+          "description": "The ID of the Cluster State Provider to use. This value must match the value of the id element of one of the cluster-provider elements in the state-management.xml file",
           "default": "zk-provider"
         },
         "management_embedded_zookeeper_start": {
@@ -1147,7 +1168,7 @@
         "repository_index_shard_size": {
           "type": "string",
           "title": "Repository Index Shard Size",
-          "title": "Large values for the shard size will result in more Java heap usage when searching the Provenance Repository but should provide better performance",
+          "description": "Large values for the shard size will result in more Java heap usage when searching the Provenance Repository but should provide better performance",
           "default": "500 MB"
         },
         "repository_max_attribute_length": {
@@ -1353,7 +1374,7 @@
         "variable_registry_properties": {
           "type": "string",
           "title": "Variable (Custom) Registry Properties File (Relative) Paths",
-          "title": "This is a comma-separated list of file location paths for one or more custom property files",
+          "description": "This is a comma-separated list of file location paths for one or more custom property files",
           "default": ""
         }
       }

@@ -9,10 +9,11 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         super("FRAMEWORK_NAME", "nifi",
               "FRAMEWORK_PRINCIPAL", "nifi-principal",
               "FRAMEWORK_USER", "nobody",
+              "FRAMEWORK_ZOOEKEEPER", "zk-1.zk:2181,zk-2.zk:2181,zk-3.zk:2181,zk-4.zk:2181,zk-5.zk:2181",
 
               "DEPLOY_STRATEGY", "parallel",
-              "UPDATE_STRATEGY", "parallel",
-              "REPLACE_STRATEGY", "parallel",
+              "UPDATE_STRATEGY", "serial",
+              "REPLACE_STRATEGY", "serial",
 
               "JAVA_URI", "",
               "LIBMESOS_URI", "",
@@ -24,7 +25,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
               "NODE_COUNT", "3",
               "NODE_CPUS", "1",
-              "NODE_MEM", "2048",
+              "NODE_MEM", "1024",
               "NODE_PORT", "0",
 
               "NODE_VIP_PREFIX", "nifi",

@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  zookeeper: {{FRAMEWORK_ZOOKEEPER}}
 pods:
   nifi:
     count: {{NODE_COUNT}}
