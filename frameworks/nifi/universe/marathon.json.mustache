@@ -50,10 +50,14 @@
     "NODE_CPUS": "{{node.cpus}}",
     "NODE_MEM": "{{node.mem}}",
     "NODE_PORT": "{{node.port}}",
-    "NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{cluster.node_protocol_port}}",
 
     "NODE_VIP_PREFIX": "{{node.vip_prefix}}",
-    "NODE_VIP_PORT": "{{node.vip_port}}",
+    {{^cluster.protocol_is_secure}}
+    "NODE_VIP_PORT": "8080",
+    {{/cluster.protocol_is_secure}}
+    {{#cluster.protocol_is_secure}}
+    "NODE_VIP_PORT": "8443",
+    {{/cluster.protocol_is_secure}}
 
     "NODE_RLIMIT_NOFILE_SOFT": "{{node.rlimit_nofile_soft}}",
     "NODE_RLIMIT_NOFILE_HARD": "{{node.rlimit_nofile_hard}}",
@@ -63,7 +67,7 @@
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
 
     {{#service.virtual_network}}
-    "ENABLE_VIRTUAL_NETWORK": "true",
+    "ENABLE_VIRTUAL_NETWORK": {{service.virtual_network}},
     {{/service.virtual_network}}
 
     "NODE_CONTENT_REPOSITORY_DISK_PATH": "{{node.content_repository_disk_path}}",
@@ -81,6 +85,8 @@
     "NODE_PROVENANCE_REPOSITORY_DISK_PATH": "{{node.provenance_repository_disk_path}}",
     "NODE_PROVENANCE_REPOSITORY_DISK_TYPE": "{{node.provenance_repository_disk_type}}",
     "NODE_PROVENANCE_REPOSITORY_DISK_SIZE": "{{node.provenance_repository_disk_size}}",
+
+    "NIFI_CLUSTER_NODE_PROTOCOL_PORT": "{{cluster.node_protocol_port}}",
 
     "TASKCFG_ALL_NIFI_VERSION": "{{service.version}}",
 
@@ -240,7 +246,10 @@
     "TASKCFG_ALL_NIFI_SECURITY_IDENTITY_MAPPING_VALUE_KERB": "{{identity.mapping_value_kerb}}",
 
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL": "{{cluster.protocol_heartbeat_interval}}",
+
+    {{#cluster.protocol_is_secure}}
     "TASKCFG_ALL_NIFI_CLUSTER_PROTOCOL_IS_SECURE": "{{cluster.protocol_is_secure}}",
+    {{/cluster.protocol_is_secure}}
 
     "TASKCFG_ALL_NIFI_CLUSTER_IS_NODE": "{{cluster.is_node}}",
     "TASKCFG_ALL_NIFI_CLUSTER_NODE_ADDRESS": "{{cluster.node_address}}",

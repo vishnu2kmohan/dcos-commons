@@ -133,12 +133,18 @@ nifi.remote.input.http.transaction.ttl={{NIFI_REMOTE_INPUT_HTTP_TRANSACTION_TTL}
 
 # Web Properties
 nifi.web.war.directory={{NIFI_WEB_WAR_DIRECTORY}}
-{{#NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+{{^NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
 nifi.web.http.host={{TASK_NAME}}.{{FRAMEWORK_HOST}}
 nifi.web.http.port={{PORT_WEB}}
 nifi.web.http.network.interface.default={{NIFI_WEB_HTTP_NETWORK_INTERFACE_DEFAULT}}
+nifi.web.https.host=
+nifi.web.https.port=
+nifi.web.https.network.interface.default=
 {{/NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
-{{^NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+{{#NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+nifi.web.http.host=
+nifi.web.http.port=
+nifi.web.http.network.interface.default=
 nifi.web.https.host={{TASK_NAME}}.{{FRAMEWORK_HOST}}
 nifi.web.https.port={{PORT_WEB}}
 nifi.web.https.network.interface.default={{NIFI_WEB_HTTPS_NETWORK_INTERFACE_DEFAULT}}
@@ -186,7 +192,7 @@ nifi.cluster.node.connection.timeout={{NIFI_CLUSTER_NODE_CONNECTION_TIMEOUT}}
 nifi.cluster.node.read.timeout={{NIFI_CLUSTER_NODE_READ_TIMEOUT}}
 nifi.cluster.firewall.file={{NIFI_CLUSTER_FIREWALL_FILE}}
 nifi.cluster.flow.election.max.wait.time={{NIFI_CLUSTER_FLOW_ELECTION_MAX_WAIT_TIME}}
-nifi.cluster.flow.election.max.candidates={{NIFI_CLUSTER_FLOW_ELECTION_MAX_CANDIDATES}}
+nifi.cluster.flow.election.max.candidates={{NODE_COUNT}}
 
 # Zookeeper Properties
 nifi.zookeeper.connect.string={{NIFI_ZOOKEEPER_CONNECT_STRING}}

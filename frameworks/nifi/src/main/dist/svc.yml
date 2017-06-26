@@ -63,6 +63,9 @@ pods:
           login-identity-providers.xml:
             template: {{CONFIG_TEMPLATE_PATH}}/login-identity-providers.xml.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/login-identity-providers.xml
+          bootstrap.conf:
+            template: {{CONFIG_TEMPLATE_PATH}}/bootstrap.conf.mustache
+            dest: nifi-{{NIFI_VERSION}}/conf/bootstrap.conf
         env:
           NODE_COUNT: {{NODE_COUNT}}
           NODE_CPUS: {{NODE_CPUS}}

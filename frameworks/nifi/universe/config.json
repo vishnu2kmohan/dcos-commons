@@ -56,7 +56,7 @@
           ],
           "title": "Node Update Strategy",
           "description": "Strategy to use for updating NiFi nodes [serial, parallel, serial-canary, parallel-canary]",
-          "default": "serial"
+          "default": "parallel"
         },
         "replace_strategy": {
           "enum": [
@@ -67,7 +67,7 @@
           ],
           "title": "Node Replace Strategy",
           "description": "Strategy to use for replacing NiFi nodes [serial, parallel, serial-canary, parallel-canary]",
-          "default": "serial"
+          "default": "parallel"
         },
         "version": {
           "type": "string",
@@ -102,7 +102,7 @@
           "type": "integer",
           "title": "Memory size (MB)",
           "description": "NiFi Node Memory Requirements (in MB)",
-          "default": 1024
+          "default": 4096
         },
         "port": {
           "type": "integer",
@@ -114,7 +114,7 @@
           "type": "string",
           "title": "NiFi VIP Prefix",
           "description": "Prefix for the NiFi (Minuteman) Named VIP",
-          "default": "nifi"
+          "default": "web"
         },
         "vip_port": {
           "type": "integer",
@@ -152,16 +152,16 @@
           "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
           "default": "hostname:UNIQUE"
         },
-        "enable_virtual_network": {
+        "virtual_network": {
           "type": "boolean",
-          "title": "Enable DC/OS Virtual Network",
-          "description": "Enable NiFi Nodes to connect to a CNI Network",
+          "title": "Enable DC/OS Virtual Network?",
+          "description": "Enable NiFi Nodes to connect to a Container Network Interface (CNI) Network?",
           "default": false
         },
         "virtual_network_name": {
           "type": "string",
           "title": "DC/OS Virtual Network Name",
-          "description": "CNI Virtual Network Name",
+          "description": "DC/OS CNI Virtual Network Name",
           "default": "dcos"
         },
         "content_repository_disk_path": {
@@ -639,7 +639,7 @@
           "type": "integer",
           "title": "Flow Election Max Candidates",
           "description": "Specifies the number of Nodes required in the cluster to cause early election of Flows. This allows the Nodes in the cluster to avoid having to wait a long time before starting processing if we reach at least this number of nodes in the cluster",
-          "default": "3"
+          "default": 3
         }
       }
     },
