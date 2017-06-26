@@ -18,14 +18,8 @@ pods:
       RLIMIT_NPROC:
         soft: {{NODE_RLIMIT_NPROC_SOFT}}
         hard: {{NODE_RLIMIT_NPROC_HARD}}
-    uris:
-      - {{BOOTSTRAP_URI}}
-      - {{NIFI_BOOTSTRAP_URI}}
-      - {{NIFI_URI}}
-    tasks:
-      node:
-        goal: RUNNING
-        cmd: ./bootstrap && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
+    resource-sets:
+      node-resources:
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         ports:
@@ -53,6 +47,15 @@ pods:
             path: {{NODE_CONTENT_REPOSITORY_DISK_PATH}}
             type: {{NODE_CONTENT_REPOSITORY_DISK_TYPE}}
             size: {{NODE_CONTENT_REPOSITORY_DISK_SIZE}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{NIFI_BOOTSTRAP_URI}}
+      - {{NIFI_URI}}
+    tasks:
+      node:
+        resource-set: node-resources
+        goal: RUNNING
+        cmd: ./bootstrap && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
         configs:
           nifi.properties:
             template: {{CONFIG_TEMPLATE_PATH}}/nifi.properties.mustache
