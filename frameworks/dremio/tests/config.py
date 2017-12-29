@@ -1,0 +1,4 @@
+PACKAGE_NAME = 'dremio'
+SERVICE_NAME = 'dremio'
+DEFAULT_TASK_COUNT = 1
+
