@@ -180,7 +180,12 @@ nifi.security.identity.mapping.value.kerb={{NIFI_SECURITY_IDENTITY_MAPPING_VALUE
 
 # Cluster Common Properties
 nifi.cluster.protocol.heartbeat.interval={{NIFI_CLUSTER_PROTOCOL_HEARTBEAT_INTERVAL}}
-nifi.cluster.protocol.is.secure={{NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+{{^NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+nifi.cluster.protocol.is.secure=true
+{{/NIFI_CLUSTER_PROTOCOL_IS_SECURE}} 
+{{#NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
+nifi.cluster.protocol.is.secure=false
+{{/NIFI_CLUSTER_PROTOCOL_IS_SECURE}}
 
 # Cluster Node Properties
 nifi.cluster.is.node={{NIFI_CLUSTER_IS_NODE}}

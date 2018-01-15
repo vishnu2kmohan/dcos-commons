@@ -25,11 +25,13 @@ pods:
         ports:
           web:
             port: {{NODE_PORT}}
+            env-key: PORT_WEB
             vip:
               prefix: {{NODE_VIP_PREFIX}}
               port: {{NODE_VIP_PORT}}
           protocol:
             port: {{NIFI_CLUSTER_NODE_PROTOCOL_PORT}}
+            env-key: PORT_PROTOCOL
         volumes:
           database-repository:
             path: {{NODE_DATABASE_REPOSITORY_DISK_PATH}}
