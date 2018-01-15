@@ -44,12 +44,12 @@ public class ServiceTest {
 
         // ticks.add(Expect.allPlansComplete());
 
-        Map<String, String> schedulerEnv = new HashMap<>();
-            schedulerEnv.put("CONFIG_TEMPLATE_PATH", "");
+        // Map<String, String> schedulerEnv = new HashMap<>();
+        //     schedulerEnv.put("CONFIG_TEMPLATE_PATH", "");
 
         new ServiceTestRunner()
-            .setSchedulerEnv(schedulerEnv)
-            .setPodEnv("nifi", getDefaultPodEnv())
+            // .setSchedulerEnv(schedulerEnv)
+            // .setPodEnv("nifi", getDefaultPodEnv())
             // .run(ticks);
             .run();
     }

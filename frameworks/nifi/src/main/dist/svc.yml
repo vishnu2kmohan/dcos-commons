@@ -60,16 +60,16 @@ pods:
         cmd: ./bootstrap && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
         configs:
           nifi.properties:
-            template: {{CONFIG_TEMPLATE_PATH}}/nifi.properties.mustache
+            template: nifi.properties.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/nifi.properties
           authorizers.xml:
-            template: {{CONFIG_TEMPLATE_PATH}}/authorizers.xml.mustache
+            template: authorizers.xml.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/authorizers.xml
           login-identity-providers.xml:
-            template: {{CONFIG_TEMPLATE_PATH}}/login-identity-providers.xml.mustache
+            template: login-identity-providers.xml.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/login-identity-providers.xml
           bootstrap.conf:
-            template: {{CONFIG_TEMPLATE_PATH}}/bootstrap.conf.mustache
+            template: bootstrap.conf.mustache
             dest: nifi-{{NIFI_VERSION}}/conf/bootstrap.conf
         env:
           NODE_COUNT: {{NODE_COUNT}}
