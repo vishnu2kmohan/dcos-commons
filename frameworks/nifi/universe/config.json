@@ -14,13 +14,14 @@
         },
         "user": {
           "type": "string",
-          "title": "Linux User (Execution Context)",
-          "description": "The Linux user under which the DC/OS Apache NiFi service will run",
+          "title": "Linux User (Process Execution Context)",
+          "description": "The Linux user under which the DC/OS Apache NiFi services will run",
           "default": "nobody"
         },
         "mesos_api_version": {
-          "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
+          "title": "Apache Mesos Scheduler API version [V0, V1]",
+          "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "enum": ["V0", "V1"],
           "default": "V1"
         },
@@ -82,8 +83,9 @@
           "default": "1.3.0"
         },
         "log_level": {
-          "description": "The log level for the DC/OS service.",
           "type": "string",
+          "title": "DC/OS Service Log Level",
+          "description": "The log level for the DC/OS service.",
           "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
           "default": "INFO"
         }
@@ -161,8 +163,11 @@
         "placement_constraint": {
           "type": "string",
           "title": "Placement Constraint",
-          "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
-          "default": "hostname:UNIQUE"
+          "description": "Marathon-style placement constraint for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         },
         "virtual_network": {
           "type": "boolean",
@@ -175,6 +180,12 @@
           "title": "DC/OS Virtual Network Name",
           "description": "DC/OS CNI Virtual Network Name",
           "default": "dcos"
+        },
+        "virtual_network_plugin_labels": {
+          "type": "string",
+          "title": "DC/OS Virtual Network Plugin Labels",
+          "description": "Labels to pass to the virtual network plugin. Comma-separated key:value pairs. For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+          "default": ""
         },
         "content_repository_disk_path": {
           "type": "string",

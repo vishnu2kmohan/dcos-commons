@@ -6,10 +6,11 @@ scheduler:
 pods:
   nifi:
     count: {{NODE_COUNT}}
-    placement: {{NODE_PLACEMENT}}
+    placement: '{{{NODE_PLACEMENT_CONSTRAINTS}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     rlimits:
       RLIMIT_NOFILE:
@@ -26,6 +27,7 @@ pods:
           web:
             port: {{NODE_PORT}}
             env-key: PORT_WEB
+            advertise: true
             vip:
               prefix: {{NODE_VIP_PREFIX}}
               port: {{NODE_VIP_PORT}}
