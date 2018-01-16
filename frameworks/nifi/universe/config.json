@@ -80,7 +80,7 @@
           "type": "string",
           "title": "Apache NiFi Version",
           "description": "Apache NiFi Software Version",
-          "default": "1.3.0"
+          "default": "1.5.0"
         },
         "log_level": {
           "type": "string",
@@ -465,8 +465,8 @@
         "sensitive_props_key_protected": {
           "type": "string",
           "title": "Sensitive Properties Encryption Key Protection",
-          "description": "This is the encryption key protection",
-          "default": "aes/gcm/256"
+          "description": "This is the encryption key protection (aes/gcm/256)",
+          "default": ""
         },
         "sensitive_props_algorithm": {
           "type": "string",

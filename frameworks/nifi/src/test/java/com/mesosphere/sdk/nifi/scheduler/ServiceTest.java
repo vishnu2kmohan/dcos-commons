@@ -112,7 +112,7 @@ public class ServiceTest {
             map.put("NODE_PROVENANCE_REPOSITORY_DISK_TYPE", "ROOT");
             map.put("NODE_PROVENANCE_REPOSITORY_DISK_SIZE", "1000");
 
-            map.put("NIFI_VERSION", "1.3.0");
+            map.put("NIFI_VERSION", "1.5.0");
 
             map.put("NIFI_LDAP_AUTHENTICATION_STRATEGY", "START_TLS");
             map.put("NIFI_LDAP_MANAGER_DN", "user@example.com");

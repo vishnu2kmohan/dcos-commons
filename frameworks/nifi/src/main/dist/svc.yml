@@ -52,6 +52,7 @@ pods:
             type: {{NODE_CONTENT_REPOSITORY_DISK_TYPE}}
             size: {{NODE_CONTENT_REPOSITORY_DISK_SIZE}}
     uris:
+      - {{JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{NIFI_BOOTSTRAP_URI}}
       - {{NIFI_URI}}
@@ -59,7 +60,7 @@ pods:
       node:
         resource-set: node-resources
         goal: RUNNING
-        cmd: ./bootstrap && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
+        cmd: ./bootstrap && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export JAVA_HOME=${JAVA_HOME%/} && export PATH=$(ls -d $JAVA_HOME/bin):$PATH && ./nifi-${NIFI_VERSION}/bin/nifi.sh run
         configs:
           nifi.properties:
             template: nifi.properties.mustache
